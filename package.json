@@ -1,0 +1,31 @@
+{
+  "name": "word-world",
+  "private": true,
+  "version": "0.4.0",
+  "description": "Offline vocabulary study for the English I postgraduate entrance examination",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "data": "node scripts/prepare-data.cjs",
+    "fsrs": "esbuild app/js/fsrs-entry.js --bundle --format=iife --target=es2020 --outfile=app/js/fsrs-engine.js",
+    "build": "npm run data && npm run fsrs",
+    "android:init": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:apk": "cd android && ./gradlew assembleDebug",
+    "android:assets": "capacitor-assets generate --android --assetPath assets --iconBackgroundColor \"#14272e\" --splashBackgroundColor \"#14272e\"",
+    "preview": "node scripts/build-preview.cjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/app": "^8.0.1",
+    "ts-fsrs": "5.4.2",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/share": "^8.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "@capacitor/assets": "^3.0.5"
+  }
+}

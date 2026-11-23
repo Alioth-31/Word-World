@@ -1,0 +1,32 @@
+# Dependencies and generated Android project
+node_modules/
+android/
+.gradle/
+*.apk
+*.aab
+
+# Build outputs and downloaded third-party datasets
+output/
+dist/
+sources/
+*.part
+*.log
+
+# IDE and operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.iml
+
+# Local secrets and machine-specific settings
+.env
+.env.*
+!.env.example
+local.properties
+*.keystore
+*.jks
+
+# Local tests and caches
+coverage/
+.cache/

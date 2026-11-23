@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f2e9">
+  <meta name="description" content="Word World：考研英语一语境词汇学习">
+  <title>Word World · 考研英语一</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="data/vocabulary.js" defer></script>
+  <script src="js/srs-fallback.js" defer></script>
+  <script src="js/fsrs-engine.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+<div class="app-frame" id="app-frame">
+  <div class="app-ambient" aria-hidden="true"></div>
+  <header class="site-header">
+    <a class="brand" href="#today" aria-label="Word World 首页"><span class="brand-seal">词</span><span class="brand-text">词界<span class="brand-en">WORD WORLD</span></span></a>
+    <button class="icon-button header-search" id="header-search" type="button" title="查词" aria-label="查词">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+    </button>
+  </header>
+  <main class="views" id="main-content">
+    <section class="view view-active" id="view-today" aria-label="今日学习">
+      <div class="editorial-heading">
+        <div class="folio-line"><span id="today-date">11月19日 星期四</span><span>KAOYAN ENGLISH I</span></div>
+        <div class="masthead"><div><p class="eyebrow">考研英语一 · 今日</p><h1>今日词汇<br>继续向前<span class="title-stop">.</span></h1></div><div class="side-label" aria-hidden="true"></div></div>
+        <p class="intro">先复习，再学习。重要词义，放到语境里理解。</p>
+      </div>
+      <section class="hero-feature" aria-labelledby="hero-label">
+        <div class="hero-etching" aria-hidden="true"><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div><div class="hero-orbit orbit-three"></div><span>W</span></div>
+        <div class="hero-contents"><div class="hero-overline" id="hero-label">今日任务 <span class="hero-ornament">✳</span></div>
+          <div class="hero-main-number"><strong id="home-due">0</strong><span id="hero-unit">待复习词汇</span></div>
+          <p class="hero-copy" id="hero-descr">回顾到期单词，稳定长期记忆。</p>
+          <button class="hero-action" id="start-review" type="button">开始今日复习 <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="hero-bottom"><span></span><span id="home-review-progress">0 / 0</span></div>
+      </section>
+      <section class="daily-grid" aria-label="其他学习任务">
+        <button class="daily-tile" id="start-new" type="button"><span class="tile-label">新词学习</span><strong id="home-new">20 <small>词</small></strong><span class="tile-link">从重要词汇开始 <b>↗</b></span></button>
+        <button class="daily-tile daily-secondary" id="browse-words" type="button"><span class="tile-label">全部词库</span><strong id="home-total">125 <small>词</small></strong><span class="tile-link">查词、查看释义与学习记录 <b>↗</b></span></button>
+      </section>
+      <section class="daily-progress" aria-label="今日学习统计"><div class="section-line"><span>今日新词</span><span class="numeric" id="day-percent">0%</span></div><div class="progress-track"><div class="progress-fill" id="day-progress" style="width:0%"></div></div><div class="progress-labels"><span id="today-finished">今日已完成 0 词</span><span id="today-goal">目标 20 词</span></div></section>
+      <div class="editorial-footnote"><span>YOUR STUDY, YOUR PACE.</span><span>WORD WORLD / 01</span></div>
+    </section>
+    <section class="view" id="view-library" aria-label="词库">
+      <div class="page-intro"><span class="eyebrow">考研词库</span><h1>词汇档案<span class="title-stop">.</span></h1><p>一份词库，多种考试价值。按重要性学习，也能随时查词。</p></div>
+      <label class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><input type="search" id="search-words" autocomplete="off" placeholder="搜索英文单词或中文释义" aria-label="搜索词汇"><kbd>/</kbd></label>
+      <div class="filter-heading"><span id="library-count">0 词</span><span>筛选 / 排序</span></div>
+      <div class="filter-bar" id="level-filters" role="group" aria-label="考研优先级筛选"><button class="filter-chip is-selected" data-level="all">全部</button><button class="filter-chip" data-level="P0">P0 核心</button><button class="filter-chip" data-level="P1">P1 重点</button><button class="filter-chip" data-level="P2">P2 基础</button><button class="filter-chip" data-level="P3">P3 补充</button><button class="filter-chip" data-level="cet6">六级重合</button><button class="filter-chip" data-level="saved">已收藏</button></div>
+      <div class="lib-order-row"><label for="library-order">排序依据</label><select id="library-order"><option value="priority">考研重要性</option><option value="alpha">字母顺序</option><option value="unlearned">未学优先</option></select></div>
+      <div class="word-list" id="word-list" aria-live="polite"></div>
+      <button class="load-more" id="load-more" hidden>继续显示</button>
+      <div class="library-attribution" id="dataset-disclaimer"></div>
+    </section>
+    <section class="view" id="view-records" aria-label="学习记录">
+      <div class="page-intro"><span class="eyebrow">学习记录</span><h1>学习轨迹<span class="title-stop">.</span></h1><p>记录的是理解与保持，不仅是翻过多少张单词卡。</p></div>
+      <div class="record-feature"><span class="eyebrow">VOCABULARY ACQUIRED</span><strong id="records-learned">0</strong><p>已开始学习的词汇</p><div class="record-rule"></div><div class="record-metrics"><div><b id="records-due">0</b><span>等待复习</span></div><div><b id="records-strong">0</b><span>记忆稳定</span></div><div><b id="records-saved">0</b><span>已收藏</span></div></div></div>
+      <div class="section-line"><span>学习偏好</span><span>SETTINGS</span></div>
+      <div class="settings-list">
+        <label class="settings-row"><span>每日新词</span><select id="new-goal"><option value="10">10 词</option><option value="15">15 词</option><option value="20">20 词</option><option value="30">30 词</option><option value="40">40 词</option></select></label>
+        <label class="settings-row"><span>学习主题</span><select id="study-theme"><option value="night">深夜 · 石墨</option><option value="paper">日光 · 纸白</option></select></label>
+        <label class="settings-row"><span>减少动画</span><input type="checkbox" id="reduce-motion"></label>
+      </div>
+      <div class="section-line backups-title"><span>数据与备份</span><span>PRIVATE & OFFLINE</span></div>
+      <div class="data-actions"><button id="export-backup">导出学习记录 ↗</button><button id="import-backup">导入学习记录 ↗</button><input type="file" id="backup-file" hidden accept="application/json,.json"></div>
+      <p class="setting-note">学习记录仅存于本设备，导出文件可用于备份或跨设备手动迁移。卸载应用前请先备份。</p>
+    </section>
+  </main>
+  <nav class="bottom-nav" aria-label="主导航"><button class="nav-link is-active" data-page="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M9 20v-6h6v6"/></svg><span>今日</span></button><button class="nav-link" data-page="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4.5h12a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2V4.5Z"/><path d="M7 20V7a2 2 0 0 1 2-2M9 10h7M9 14h5"/></svg><span>词库</span></button><button class="nav-link" data-page="records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h16M7 17V9m5 8V4m5 13v-6"/></svg><span>记录</span></button></nav>
+</div>
+
+<section class="study-shell is-hidden" id="study-shell" aria-label="沉浸学习" aria-hidden="true" data-study-theme="night">
+  <div class="study-ambient" aria-hidden="true"></div>
+  <div class="study-grain" aria-hidden="true"></div>
+  <div class="study-container">
+    <header class="study-header"><button class="study-back" id="leave-study" aria-label="退出学习"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m15 5-7 7 7 7"/></svg><span>退出</span></button><div class="study-progress-label"><span id="study-mode-label">新词学习</span><span class="study-index" id="study-index">01 / 20</span></div><button class="study-bookmark" id="study-bookmark" aria-label="收藏单词" title="收藏单词"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></button></header>
+    <div class="study-progress-track"><span id="study-progress-fill"></span></div>
+    <div class="study-scroll" id="study-scroll">
+      <div class="study-stage" id="study-stage">
+        <div class="study-meta"><span id="word-priority">考研重点词</span><span class="meta-rule"></span><span id="word-pos">VOCABULARY</span></div>
+        <h1 id="study-word">address</h1>
+        <div class="pronounce-row"><span id="study-phonetic">/əˈdres/</span><button id="study-speak" class="speaker" title="发音" aria-label="播放单词发音"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3.5 9v6h4l5.5 4V5L7.5 9h-4zM17 9a4 4 0 0 1 0 6M19.5 6a8 8 0 0 1 0 12"/></svg><span>发音</span></button></div>
+        <div class="study-prompt" id="study-prompt"><span class="prompt-line"></span><p>想一想，它是什么意思？</p><small>尝试回忆，再查看重点义项和例句。</small></div>
+        <div class="reveal-content is-hidden" id="reveal-content">
+          <div class="reveal-header"><span>重点释义</span><span id="study-ranking">01 / 5530</span></div>
+          <p class="major-meaning" id="study-meaning">v. 处理；应对</p>
+          <p class="meaning-extras" id="study-extra-meaning"></p>
+          <div class="context-block" id="context-block"><span class="context-caption" id="context-caption">EXAMPLE IN CONTEXT</span><blockquote id="study-example"></blockquote><p id="study-example-zh"></p><span class="context-source" id="context-source"></span></div>
+          <div class="reveal-guidance"><span></span><p>记住词语在句子中的含义，比记住单独的中文对译更重要。</p></div>
+        </div>
+      </div>
+    </div>
+    <footer class="study-footer"><div class="study-footer-inner"><button class="reveal-button" id="reveal-answer">揭示词义 <span aria-hidden="true">↓</span></button><div class="rating-buttons is-hidden" id="rating-buttons" aria-label="记忆评价"><button class="rating" data-rating="again"><span>忘了</span><small>重新学习</small></button><button class="rating" data-rating="hard"><span>模糊</span><small>较难回忆</small></button><button class="rating" data-rating="good"><span>记住</span><small>正常记忆</small></button><button class="rating" data-rating="easy"><span>轻松</span><small>十分熟悉</small></button></div></div></footer>
+  </div>
+</section>
+
+<section class="detail-shell is-hidden" id="detail-shell" aria-label="词典详情" aria-hidden="true"><div class="detail-header"><button id="close-detail" aria-label="返回词库"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m15 5-7 7 7 7"/></svg><span>词库</span></button><span>词义与语境</span><button id="detail-bookmark" aria-label="收藏单词" title="收藏单词"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></button></div><div class="detail-scroller" id="detail-scroller"><p class="eyebrow" id="detail-priority">KAOYAN ENGLISH I</p><h1 id="detail-word">address</h1><button class="detail-pronounce" id="detail-speak"> <span id="detail-phonetic"></span><span aria-hidden="true">↗ 播放发音</span></button><div class="detail-rule"></div><p class="detail-label">释义 / DEFINITIONS</p><p class="detail-meaning" id="detail-meaning"></p><p id="detail-extra"></p><div class="detail-context" id="detail-context"><p class="detail-label" id="detail-context-label">语境 / CONTEXT</p><blockquote id="detail-example"></blockquote><p id="detail-example-zh"></p><small id="detail-example-source"></small></div><p class="detail-accuracy" id="detail-evidence"></p></div><div class="detail-bottom"><button id="detail-start">从此词开始学习 ↗</button></div></section>
+
+<section class="finish-shell is-hidden" id="finish-shell" aria-label="学习完成" aria-hidden="true"><div class="finish-body"><span class="finish-ornament">✳</span><span class="eyebrow">SESSION COMPLETE</span><h1>这一组，<br>已完成。</h1><p id="finish-summary">你已经完成今天的学习。</p><div class="finish-divider"></div><div class="finish-numbers"><div><strong id="finish-count">20</strong><span>本次词汇</span></div><div><strong id="finish-rate">80%</strong><span>本次回忆成功率</span></div></div><button id="finish-home">返回今日首页 ↗</button></div></section>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

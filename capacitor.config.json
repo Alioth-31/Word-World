@@ -1,0 +1,11 @@
+{
+  "appId": "com.wordworld.kaoyan",
+  "appName": "Word World",
+  "webDir": "app",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#F6F2E9"
+  }
+}

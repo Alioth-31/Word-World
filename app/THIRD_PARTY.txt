@@ -1,0 +1,17 @@
+Word World third-party data notices
+
+The MIT License applies to the original application code and original demo content.
+Third-party datasets may use different terms. In particular:
+
+NETEMVocabulary (https://github.com/exam-data/NETEMVocabulary)
+Data license: CC BY-NC-SA 4.0. The generated full vocabulary uses records from this source.
+
+CETVocabulary (https://github.com/exam-data/CETVocabulary)
+Data license: CC BY-NC-SA 4.0. Used for exam overlap tags.
+
+structured-kaoyan-english (https://github.com/LIziak112/structured-kaoyan-english)
+Used for aggregate exam-word occurrence counts. Some original exam and educational materials
+may carry third-party rights; the source's licensing declarations do not supersede such rights.
+
+License URL: https://creativecommons.org/licenses/by-nc-sa/4.0/
+For complete attribution and additional dependencies see THIRD_PARTY.md in the source repository.
