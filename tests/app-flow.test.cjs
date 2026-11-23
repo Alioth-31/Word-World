@@ -190,5 +190,6 @@ test('dictionary details distinguish importance rank from source frequency rank'
  if(win.WORD_WORLD_META.sample)return;
  nav[1].dispatch('click');
  els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word:'the'}})}});
- assert.match(els.get('detail-priority').textContent,/重要性 #3200 · 来源词频 #1（86,015 次）/);
+ const source=win.WORD_WORLD_VOCAB.find(w=>w.word==='the');
+ assert.ok(els.get('detail-priority').textContent.includes(`重要性 #${source.priority.rank} · 来源词频 #${source.priority.frequencyRank}（${source.frequency.toLocaleString('en-US')} 次）`));
 });
