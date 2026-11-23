@@ -203,3 +203,6 @@ body { background:#e9e5dc; }
   .rating small {font-size:9px;}
   .study-footer {padding-left:16px;padding-right:16px;}
 }
+
+/* Learning-order control in the daily view. */
+.today-order-row{margin-top:16px;padding:9px 0;border-bottom:1px solid #ddd8cf}.today-order-row select{max-width:70%;text-align:right}

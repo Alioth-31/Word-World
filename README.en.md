@@ -32,7 +32,7 @@ flowchart LR
 - Daily tasks: due reviews first, then new vocabulary.
 - Focused practice: recall, reveal, contextual examples, and four-grade feedback.
 - **Full vocabulary** — 5,530 authentic entries with pronunciations, meanings, source frequency counts, a 3,050-word core-list label and CET overlap information.
-- **Two ranking modes** — composite study importance (default) and descending raw source frequency; the rankings are independent.
+- **Two ranking modes** — composite study importance (default) and descending raw source frequency. The daily screen and settings control new-word order; dictionary details show both ranks.
 - Dictionary — Chinese/English search, filters, bookmarks, and word details.
 - Local records: on-device progress and JSON import/export.
 - Spaced repetition: Android builds integrate `ts-fsrs`; standalone HTML previews use a simplified fallback scheduler.
@@ -54,7 +54,7 @@ Open [GitHub Actions · Android APK](https://github.com/Alioth-31/Word-World/act
 
 On Windows, install Node.js 22+, JDK 21+, and the Android SDK, then run `build-android.cmd`. A successful build writes `output/word-world-debug.apk`.
 
-> There is currently no production APK validated on a physical device. The full vocabulary is bundled in the repository; Android builds may fetch upstream data to refresh ranking inputs. These updates depend on network availability and upstream sources. The Android workflow must run separately: a green Tests badge **does not** establish that the APK builds successfully.
+> There is currently no production APK validated on a physical device. Android builds use the committed vocabulary without fetching updated rankings. Refreshing source data is an explicit operation (`npm run build:refresh-data`) and should be reviewed before committing regenerated assets. The Android workflow must run separately: a green Tests badge **does not** establish that the APK builds successfully.
 
 ## Repository layout
 

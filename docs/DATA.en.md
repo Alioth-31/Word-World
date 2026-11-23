@@ -17,7 +17,7 @@ node scripts/prepare-data.cjs --without-corpus
 node scripts/prepare-data.cjs --offline
 ```
 
-The `sources/` directory is Git-ignored. `app/data/vocabulary.js` **already contains upstream-licensed vocabulary data** and must not be redistributed under the project's MIT license. Running the builder replaces this file with a newly generated version.
+The `sources/` directory is Git-ignored. `app/data/vocabulary.js` **already contains upstream-licensed vocabulary data** and must not be redistributed under the project's MIT license. Running the builder replaces this file with a newly generated version. The regular `npm run build` verifies the committed vocabulary and bundles the scheduler without refreshing the dictionary. Use `npm run build:refresh-data` explicitly when updated source data is needed, then review the resulting changes.
 
 **The two rankings differ**: source frequency counts come from mixed exam corpora (including CET, postgraduate and TEM examinations), **not English I alone**. Composite importance is a separate **unvalidated heuristic** incorporating source-provided exam counts, mixed frequency, CEFR and core-set membership. Exact token matches are not lemmatized matches and cannot establish which sense of a polysemous word occurs in a passage. With insufficient corpus data, scoring falls back to source fields and is **not** an independently verified English I frequency list.
 

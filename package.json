@@ -8,12 +8,13 @@
     "test": "node --test tests/*.test.cjs",
     "data": "node scripts/prepare-data.cjs",
     "fsrs": "esbuild app/js/fsrs-entry.js --bundle --format=iife --target=es2020 --outfile=app/js/fsrs-engine.js",
-    "build": "npm run data && npm run fsrs",
+    "build": "npm test && npm run fsrs",
     "android:init": "npx cap add android",
     "android:sync": "npx cap sync android",
     "android:apk": "cd android && ./gradlew assembleDebug",
     "android:assets": "capacitor-assets generate --android --assetPath assets --iconBackgroundColor \"#14272e\" --splashBackgroundColor \"#14272e\"",
-    "preview": "node scripts/build-preview.cjs"
+    "preview": "node scripts/build-preview.cjs",
+    "build:refresh-data": "npm run data && npm run build"
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",
