@@ -163,3 +163,14 @@ test('case-distinct source entries retain independent progress',()=>{
  assert.ok(data.progress.may);
  assert.ok(data.progress.May);
 });
+
+test('new-word study order can switch from importance to source frequency',()=>{
+ const {els,nav,local,win}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ nav[2].dispatch('click');
+ els.get('study-order').value='frequency';
+ els.get('study-order').dispatch('change');
+ assert.equal(JSON.parse(local.get('wordworld_state_v1')).prefs.studyOrder,'frequency');
+ els.get('start-new').dispatch('click');
+ assert.equal(els.get('study-word').textContent,'the');
+});

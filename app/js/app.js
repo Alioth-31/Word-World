@@ -29,12 +29,12 @@ function loadState(){
   } catch(err){console.warn('无法读取学习记录:',err)}
   return defaults();
 }
-function defaults(){return {schema:3,progress:{},saved:{},prefs:{goal:20,theme:'night',reduceMotion:false},daily:{},createdAt:new Date().toISOString()}}
+function defaults(){return {schema:3,progress:{},saved:{},prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority'},daily:{},createdAt:new Date().toISOString()}}
 function persist(){ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(err){toast('本地存储失败，请及时导出备份');return false} }
 function daily(){if(!state.daily[todayKey()])state.daily[todayKey()]={new:0,reviews:0,success:0};return state.daily[todayKey()]}
 function progressOf(word){return state.progress[wordKey(word)]||null}
 function dueWords(){const now=Date.now();return VOCAB.filter(w=>{const p=progressOf(w.word);return p && Date.parse(p.due)<=now}).sort((a,b)=>Date.parse(progressOf(a.word).due)-Date.parse(progressOf(b.word).due)||priorityCompare(a,b))}
-function pendingNew(){return VOCAB.filter(w=>!progressOf(w.word)).sort(priorityCompare)}
+function pendingNew(){return VOCAB.filter(w=>!progressOf(w.word)).sort(state.prefs.studyOrder==='frequency'?frequencyCompare:priorityCompare)}
 function countStable(){return Object.values(state.progress).filter(p=>p && p.interval>=21*86_400_000).length}
 function activeLearned(){return VOCAB.filter(w=>progressOf(w.word)).length}
 function label(w){return w.priority?.level || '考研词'}
@@ -68,7 +68,7 @@ function renderHome(){
   $('hero-unit').textContent=mode==='review'?'待复习词汇':mode==='new'?'今日新词':'今日任务已完成';
   $('hero-label').firstChild.textContent=mode==='review'?'到期复习':mode==='new'?'今日计划':'学习完成';
   $('home-review-progress').textContent=`${done.reviews} 次已复习`;
-  $('hero-descr').textContent=mode==='review'?'先完成到期复习，再认识新的词。':mode==='new'?'当前没有到期复习，从新的考研重点词开始。':'今天的任务已经完成。可以继续浏览词库。';
+  $('hero-descr').textContent=mode==='review'?'先完成到期复习，再认识新的词。':mode==='new'?(state.prefs.studyOrder==='frequency'?'当前没有到期复习，从来源高频词开始。':'当前没有到期复习，从综合重要性较高的词开始。'):'今天的任务已经完成。可以继续浏览词库。';
   $('start-review').firstChild.textContent=mode==='review'?'开始今日复习 ':mode==='new'?'开始新词学习 ':'浏览全部词库 ';
   $('start-new').hidden=mode!=='review';
   $('home-new').innerHTML=`${newTotal} <small>词</small>`;
@@ -81,7 +81,7 @@ function renderHome(){
 function renderRecords(){
  $('records-learned').textContent=activeLearned();$('records-due').textContent=dueWords().length;
  $('records-strong').textContent=countStable();$('records-saved').textContent=Object.keys(state.saved).length;
- $('new-goal').value=String(state.prefs.goal);$('study-theme').value=state.prefs.theme;$('reduce-motion').checked=!!state.prefs.reduceMotion;
+ $('new-goal').value=String(state.prefs.goal);$('study-order').value=state.prefs.studyOrder||'priority';$('study-theme').value=state.prefs.theme;$('reduce-motion').checked=!!state.prefs.reduceMotion;
 }
 function getLibraryResults(){
  const q=$('search-words').value.trim().toLowerCase();
@@ -236,6 +236,7 @@ function bind(){
  $('rating-buttons').addEventListener('click',e=>{const node=e.target.closest('[data-rating]');if(node)recordRating(node.dataset.rating)});
  $('finish-home').addEventListener('click',leaveSession);
  $('new-goal').addEventListener('change',e=>{state.prefs.goal=Number(e.target.value);persist();renderHome()});
+ $('study-order').addEventListener('change',e=>{state.prefs.studyOrder=e.target.value==='frequency'?'frequency':'priority';persist();renderHome()});
  $('study-theme').addEventListener('change',e=>{state.prefs.theme=e.target.value;persist()});
  $('reduce-motion').addEventListener('change',e=>{state.prefs.reduceMotion=e.target.checked;persist();animateControls()});
  $('export-backup').addEventListener('click',exportBackup);

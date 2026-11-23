@@ -40,7 +40,7 @@
         <div class="hero-bottom"><span></span><span id="home-review-progress">0 / 0</span></div>
       </section>
       <section class="daily-grid" aria-label="其他学习任务">
-        <button class="daily-tile" id="start-new" type="button"><span class="tile-label">新词学习</span><strong id="home-new">20 <small>词</small></strong><span class="tile-link">从重要词汇开始 <b>↗</b></span></button>
+        <button class="daily-tile" id="start-new" type="button"><span class="tile-label">新词学习</span><strong id="home-new">20 <small>词</small></strong><span class="tile-link">按所选顺序学习 <b>↗</b></span></button>
         <button class="daily-tile daily-secondary" id="browse-words" type="button"><span class="tile-label">全部词库</span><strong id="home-total">125 <small>词</small></strong><span class="tile-link">查词、查看释义与学习记录 <b>↗</b></span></button>
       </section>
       <section class="daily-progress" aria-label="今日学习统计"><div class="section-line"><span>今日新词</span><span class="numeric" id="day-percent">0%</span></div><div class="progress-track"><div class="progress-fill" id="day-progress" style="width:0%"></div></div><div class="progress-labels"><span id="today-finished">今日已完成 0 词</span><span id="today-goal">目标 20 词</span></div></section>
@@ -62,6 +62,7 @@
       <div class="section-line"><span>学习偏好</span><span>SETTINGS</span></div>
       <div class="settings-list">
         <label class="settings-row"><span>每日新词</span><select id="new-goal"><option value="10">10 词</option><option value="15">15 词</option><option value="20">20 词</option><option value="30">30 词</option><option value="40">40 词</option></select></label>
+        <label class="settings-row"><span>新词排序</span><select id="study-order"><option value="priority">综合重要性（默认）</option><option value="frequency">来源词频（从高到低）</option></select></label>
         <label class="settings-row"><span>学习主题</span><select id="study-theme"><option value="night">深夜 · 石墨</option><option value="paper">日光 · 纸白</option></select></label>
         <label class="settings-row"><span>减少动画</span><input type="checkbox" id="reduce-motion"></label>
       </div>
