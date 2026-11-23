@@ -31,6 +31,14 @@ async function main(){
  await getFile(examUrl,vocabularyPath);
  const raw=JSON.parse(fs.readFileSync(vocabularyPath,'utf8'));
  const rows=parseVocabulary(raw);
+ const demoFile=path.join(root,'data','demo-vocabulary.tsv');
+ const demoExamples=new Map();
+ if(fs.existsSync(demoFile)){
+   for(const line of fs.readFileSync(demoFile,'utf8').split(/\r?\n/).slice(1)){
+     const [word,,example,exampleZh]=line.split('\t');
+     if(word && example)demoExamples.set(word.trim().toLowerCase(),{example,exampleZh:exampleZh||'',exampleType:'original',exampleSource:'自编例句，非真题'});
+   }
+ }
  let coreWords=new Set();
  try {await getFile(coreUrl,corePath);coreWords=new Set(parseVocabulary(JSON.parse(fs.readFileSync(corePath,'utf8'))).map(x=>String(x['单词']||x.word||'').trim().toLowerCase()));}
  catch(e){console.warn('核心词表不可用，仅按完整词表评分：',e.message)}
@@ -68,7 +76,7 @@ async function main(){
   const six=cet?.['六级'];
   const isSix = six!==undefined && six!==null && !['', '0', 'false', '否', '无', 'no'].includes(String(six).trim().toLowerCase());
   const tags=['考研',...(cet?[isSix?'六级':'四级']:[])];
-  const base={word,meaning,phonetic:String(item['英式音标']||item['音标']||item.phonetic||'').trim(),tags,
+  const base={word,meaning,phonetic:String(item['英式音标']||item['音标']||item.phonetic||'').trim(),tags,...(demoExamples.get(key)||{}),
     category:String(item['分类名称']||'').trim(),frequency:Number(item['词频'])||0,
     priority:{level:p?.level||'P3',rank:p?.rank??null,frequencyRank:p?.frequencyRank??null,core:coreWords.has(key),score:p?.score??0,examCount:p?.examCount??null,exam1Count:p?.exam1Count??null,exam1Years:p?.exam1Years??null,basis:p?.basis||'原始词库'} }; 
   if(!map.has(word))map.set(word,base);

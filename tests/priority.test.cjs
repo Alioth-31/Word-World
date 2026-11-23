@@ -30,6 +30,8 @@ test('full vocabulary builder validates count and produces a standalone JS asset
  const scriptRoot=path.join(base,'scripts');const sourceRoot=path.join(base,'sources');
  fs.mkdirSync(scriptRoot,{recursive:true});fs.mkdirSync(sourceRoot,{recursive:true});
  fs.mkdirSync(path.join(base,'app','data'),{recursive:true});
+ fs.mkdirSync(path.join(base,'data'),{recursive:true});
+ fs.writeFileSync(path.join(base,'data','demo-vocabulary.tsv'),'word\tmeaning\texample\texample_zh\nword0\tx\tOriginal sample context.\t原创语境。\n');
  fs.copyFileSync(path.join(__dirname,'..','scripts','priority_core.cjs'),path.join(scriptRoot,'priority_core.cjs'));
  fs.copyFileSync(path.join(__dirname,'..','scripts','prepare-data.cjs'),path.join(scriptRoot,'prepare-data.cjs'));
  fs.writeFileSync(path.join(sourceRoot,'netem_full_list.json'),JSON.stringify({'5530考研词汇词频排序表':Array.from({length:5530},(_,i)=>({'单词':'word'+i,'词频':i+1,'真题次数':i%80,'释义':'释义'+i,'例句':'Original sentence '+i}))}));
@@ -38,6 +40,7 @@ test('full vocabulary builder validates count and produces a standalone JS asset
  assert.equal(res.status,0,res.stderr);
  const text=fs.readFileSync(path.join(base,'app','data','vocabulary.js'),'utf8');
  assert.match(text,/"count":5530/);assert.match(text,/word5529/);
+ assert.match(text,/Original sample context/);
  fs.rmSync(base,{recursive:true,force:true});
 });
 
