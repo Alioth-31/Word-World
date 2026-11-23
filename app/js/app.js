@@ -110,7 +110,7 @@ function renderLibrary(reset=true){
  for(const [i,w] of libraryResults.slice(0,visibleCount).entries()){
   const row=document.createElement('button');row.type='button';row.className='word-row';row.dataset.word=w.word;
   const learned=!!progressOf(w.word);
-  row.innerHTML=`<span class="word-index">${String((($('library-order').value==='frequency'?w.priority?.frequencyRank:w.priority?.rank)??(i+1))).padStart(2,'0')}</span><span class="word-description"><strong>${escapeHTML(w.word)}</strong><small>${escapeHTML(w.meaning||'暂无释义')}</small>${frequency(w)?`<small class="word-freq">来源词频 #${w.priority?.frequencyRank??'—'} · ${frequency(w).toLocaleString('en-US')} 次${w.priority?.core?' · 核心词表':''}</small>`:''}</span><span class="word-status ${learned?'is-learned':''}">${learned?'已学习':escapeHTML(label(w))}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><path d="m9 5 7 7-7 7"/></svg>`;
+  row.innerHTML=`<span class="word-index">${String((($('library-order').value==='frequency'?w.priority?.frequencyRank:w.priority?.rank)??(i+1))).padStart(2,'0')}</span><span class="word-description"><strong>${escapeHTML(w.word)}</strong><small>${escapeHTML(w.meaning||'暂无释义')}</small><small class="word-freq">来源词频 #${w.priority?.frequencyRank??'—'} · ${frequency(w).toLocaleString('en-US')} 次${w.priority?.core?' · 核心词表':''}</small></span><span class="word-status ${learned?'is-learned':''}">${learned?'已学习':escapeHTML(label(w))}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><path d="m9 5 7 7-7 7"/></svg>`;
   frag.appendChild(row);
  }
  list.appendChild(frag);
