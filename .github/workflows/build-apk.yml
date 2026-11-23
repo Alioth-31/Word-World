@@ -21,7 +21,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Test application
         run: npm test
-      - name: Assemble complete vocabulary and FSRS
+      - name: Verify bundled vocabulary and build FSRS
         run: npm run build
       - name: Install Android SDK components
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'

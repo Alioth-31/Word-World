@@ -93,7 +93,7 @@ test('study screen labels ranking provenance accurately',()=>{
    assert.equal(els.get('study-ranking').textContent,'示例词汇');
    assert.match(els.get('context-source').textContent,/自编例句/);
  }else{
-   assert.match(els.get('study-ranking').textContent,/重要性 #[0-9]+ · 来源词频 [0-9,]+/);
+   assert.match(els.get('study-ranking').textContent,/重要性 #[0-9]+ · 来源词频 #[0-9]+（[0-9,]+ 次）/);
    assert.equal(win.WORD_WORLD_VOCAB.length,5530);
  }
 });
@@ -173,4 +173,22 @@ test('new-word study order can switch from importance to source frequency',()=>{
  assert.equal(JSON.parse(local.get('wordworld_state_v1')).prefs.studyOrder,'frequency');
  els.get('start-new').dispatch('click');
  assert.equal(els.get('study-word').textContent,'the');
+});
+
+test('daily order switch persists and controls the next new-word session',()=>{
+ const {els,local,win}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ els.get('today-study-order').value='frequency';
+ els.get('today-study-order').dispatch('change');
+ assert.equal(els.get('study-order').value,'frequency');
+ assert.equal(JSON.parse(local.get('wordworld_state_v1')).prefs.studyOrder,'frequency');
+ els.get('start-review').dispatch('click');
+ assert.equal(els.get('study-word').textContent,'the');
+});
+test('dictionary details distinguish importance rank from source frequency rank',()=>{
+ const {els,nav,win}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ nav[1].dispatch('click');
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word:'the'}})}});
+ assert.match(els.get('detail-priority').textContent,/重要性 #3200 · 来源词频 #1（86,015 次）/);
 });
