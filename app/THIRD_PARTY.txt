@@ -1,17 +1,16 @@
-Word World third-party data notices
+Word World — Third-party data / 第三方数据说明
 
-The MIT License applies to the original application code and original demo content.
-Third-party datasets may use different terms. In particular:
+The project's MIT license applies only to original material that the project is entitled to license.
+本项目 MIT 许可证仅覆盖有权授权的原创部分。
 
-NETEMVocabulary (https://github.com/exam-data/NETEMVocabulary)
-Data license: CC BY-NC-SA 4.0. The generated full vocabulary uses records from this source.
+NETEMVocabulary: https://github.com/exam-data/NETEMVocabulary
+CETVocabulary: https://github.com/exam-data/CETVocabulary
+  Source repositories declare CC BY-NC-SA 4.0 / 源仓库声明 CC BY-NC-SA 4.0
+  License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
-CETVocabulary (https://github.com/exam-data/CETVocabulary)
-Data license: CC BY-NC-SA 4.0. Used for exam overlap tags.
+structured-kaoyan-english: https://github.com/LIziak112/structured-kaoyan-english
+  Used for aggregate exam counts; some original texts may have separate rights.
+  用于词频统计；原始真题材料可能受其他版权约束。
 
-structured-kaoyan-english (https://github.com/LIziak112/structured-kaoyan-english)
-Used for aggregate exam-word occurrence counts. Some original exam and educational materials
-may carry third-party rights; the source's licensing declarations do not supersede such rights.
-
-License URL: https://creativecommons.org/licenses/by-nc-sa/4.0/
-For complete attribution and additional dependencies see THIRD_PARTY.md in the source repository.
+Source repository notices / 源码仓库许可说明:
+https://github.com/Alioth-31/Word-World/blob/main/docs/DATA.md

@@ -1,81 +1,92 @@
-# Word World
+# Word World · 词页
 
-[![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
+**Offline vocabulary learning for China's postgraduate English I exam · 考研英语（一）离线词汇学习**
 
-面向考研英语（一）的离线词汇学习应用，提供语境学习、主动回忆、间隔复习及按考试价值排序的词库。应用采用 Capacitor 封装 Android，核心界面由原生 Web 技术实现。
+[简体中文](#简体中文) · [English](#english)
 
-> 当前仓库包含可运行的 125 词示例数据。完整考研词库由构建脚本从第三方资料生成，其许可与本项目代码的 MIT 许可不同。有关数据来源及使用限制，请参阅 [第三方材料](THIRD_PARTY.md)。
+[![Tests](https://github.com/Alioth-31/Word-World/actions/workflows/test.yml/badge.svg)](https://github.com/Alioth-31/Word-World/actions/workflows/test.yml)
+[![Code license: MIT](https://img.shields.io/badge/code%20license-MIT-344d48)](LICENSE)
+[![Android build](https://img.shields.io/badge/Android-build%20workflow-344d48)](https://github.com/Alioth-31/Word-World/actions/workflows/build-apk.yml)
 
-## 功能
+<p align="center">
+  <img src="docs/images/today.png" alt="今日首页 / Today's study screen" height="490">
+  &nbsp;&nbsp;
+  <img src="docs/images/study.png" alt="释义与语境 / Meaning and context screen" height="490">
+</p>
+<p align="center"><sub>实际界面截图，使用演示词汇 · Screenshots of the working interface with demo vocabulary</sub></p>
 
-- 今日学习：区分到期复习和新词学习。
-- 沉浸学习：先回忆单词，再揭示词义与语境，最后评价记忆程度。
-- 词库：支持英文或中文搜索、重要性筛选、排序和收藏。
-- 复习：Android 构建使用 `ts-fsrs`；无需依赖的单文件演示使用简化调度器。
-- 数据：学习记录保存在本机，可导入和导出 JSON 备份。
-
-## 项目结构
-
-```text
-app/                    应用源码及内置演示数据
-  assets/               图标
-  data/                 运行时词库
-  js/                   学习逻辑与复习调度适配
-assets/                 Android 图标源文件
-data/                   词库演示数据源
-scripts/                数据处理和预览构建脚本
-tests/                  Node.js 自动化测试
-.github/workflows/      Android 构建流程
-build-android.cmd       Windows 构建入口
+```mermaid
+flowchart LR
+    A["今日 / Today"] --> B["主动回忆 / Recall"]
+    B --> C["释义与语境 / Meaning & context"]
+    C --> D["记忆评价 / Rating"]
+    D --> E["复习计划 / Scheduling"]
 ```
 
-## 本地运行
+## 简体中文
 
-安装 Node.js 22 或更新版本后，在项目目录执行：
+Word World 是面向考研英语（一）的移动端词汇学习项目。界面以阅读为中心：学习时先回忆词义，再查看释义和语境，最后评价记忆情况；查词时则直接展示内容，不强制进入测试流程。
+
+**主要功能**
+
+- **今日学习**：区分到期复习与今日新词。
+- **沉浸式学习**：回忆、揭示释义、语境阅读、四级记忆反馈。
+- **词库检索**：支持中英文搜索、考研优先级筛选、收藏与词条详情。
+- **本地记录**：学习进度保存在设备上，支持导入、导出 JSON 备份。
+- **间隔复习**：Android 正式构建使用 `ts-fsrs`；单文件浏览器预览使用简化调度器。
+
+**在浏览器体验**（需 Node.js 22+）：
 
 ```bash
 npm test
 npm run preview
 ```
 
-在浏览器打开 `output/preview.html`，即可使用示例词汇体验学习流程。预览不需要下载 Android SDK。
+用浏览器打开生成的 `output/preview.html`。无需 Android SDK；预览使用仓库内的 **125 条演示词汇**。
 
-## 构建 Android 安装包
+**构建 Android 调试 APK**：在 [Actions → Android APK](https://github.com/Alioth-31/Word-World/actions/workflows/build-apk.yml) 中选择 **Run workflow**。工作流成功后，在对应运行页面的 **Artifacts** 下载 APK。也可以在安装 Node.js 22+、JDK 21+、Android SDK 后，通过 Windows 的 `build-android.cmd` 构建。
 
-### GitHub Actions
+正式构建会尝试获取完整考研词库及可用的英语（一）语料；当前仓库**没有已完成真机验收的正式发布 APK**。词汇优先级是根据来源数据计算的启发式评分，不是官方考试等级。数据来源、离线构建方式及许可边界参见 [数据与第三方许可](docs/DATA.md)。
 
-仓库的 **Actions → Android APK → Run workflow** 可构建测试用 APK。生成的 APK 可在对应的工作流运行页面 **Artifacts** 中获取。CI 会尝试下载完整词表和英语（一）语料，并生成相应的优先级数据。
+## English
 
-### Windows
+Word World is a mobile vocabulary-learning project for **China's postgraduate entrance examination, English I**. Its reading-first interface separates *active recall* from dictionary lookup: recall a word, reveal its meaning and context, then rate your memory. Looking up a word displays its definition immediately.
 
-本机需要 Node.js 22+、JDK 21+、Android SDK，随后运行 `build-android.cmd`。成功后安装包位于 `output/word-world-debug.apk`。
+**Features**
 
-### 命令行
+- **Today** — due reviews and new words in separate learning paths.
+- **Focused study** — recall, answer reveal, contextual examples, and four-grade feedback.
+- **Vocabulary library** — Chinese/English search, priority filters, bookmarks, and word details.
+- **Local progress** — learning records stored on device, with JSON import/export.
+- **Spaced repetition** — Android builds bundle `ts-fsrs`; the standalone browser preview uses a simplified scheduler.
 
-```bash
-npm install
-npm run build
-npx cap add android
-npx cap sync android
-npx capacitor-assets generate --android --assetPath assets --iconBackgroundColor "#14272e" --splashBackgroundColor "#14272e"
-cd android
-./gradlew assembleDebug
-```
-
-`npm run build` 会下载考研词库与可用的考试语料。需要离线构建时，可将来源数据放入 `sources/`；详见 [数据说明](docs/data.md)。
-
-需要从本机一次性创建 GitHub 仓库并上传源码时，可安装 GitHub CLI 并完成 `gh auth login`，随后运行 `scripts/publish-github.cmd`。该脚本将创建公开的 `word-world` 仓库并推送初始提交。脚本将使用与个人身份无关的通用提交者署名，不读取本机 Git 配置的真实姓名或邮箱。GitHub 仓库归属账号仍为公开信息。
-
-## 测试与限制
+**Try the browser preview** (Node.js 22+):
 
 ```bash
 npm test
+npm run preview
 ```
 
-本仓库的测试覆盖主要学习流程和词库优先级计算。当前没有在此仓库中提供经过真机验收的正式签名发行包。
+Open `output/preview.html`. No Android SDK is required; the preview includes **125 demonstration entries**.
 
-考研词汇重要性排序是基于来源词频、真题样本和难度标签的启发式评分，不是官方考试等级。数据源可能包含转录错误；正文匹配目前未覆盖所有屈折词形与一词多义。跨设备数据同步尚未实现。
+**Build a debug APK**: Open [Actions → Android APK](https://github.com/Alioth-31/Word-World/actions/workflows/build-apk.yml), select **Run workflow**, and download the APK from the successful run's **Artifacts**. For local Windows builds, install Node.js 22+, JDK 21+, and the Android SDK, then run `build-android.cmd`.
 
-## 许可证
+The full build attempts to retrieve postgraduate vocabulary data and available English I corpora. **No production APK has passed physical-device release validation yet.** Vocabulary priorities are heuristic scores, not official exam classifications. See [Data and third-party licenses](docs/DATA.md) for sources, offline preparation, and redistribution constraints.
 
-本项目原创代码和原创演示内容采用 [MIT License](LICENSE)。第三方依赖、词表与真题资料分别遵守其原始许可（构建 APK 时保留 `app/THIRD_PARTY.txt`），**不因仓库采用 MIT 而转为 MIT**。请阅读 [THIRD_PARTY.md](THIRD_PARTY.md)。
+## 项目结构 / Repository layout
+
+```text
+app/                 Application UI and study logic / 界面与学习逻辑
+assets/              Android icon source / 安卓图标
+data/                Demo vocabulary source / 演示词库源数据
+scripts/             Data processing and preview build / 数据处理与构建
+tests/               Automated tests / 自动测试
+docs/                Data notices and screenshots / 数据说明与截图
+.github/workflows/   Test and Android build automation / 自动化工作流
+```
+
+## 许可与隐私 / License & privacy
+
+Original project code is licensed under **[MIT](LICENSE)**（原创代码采用 MIT 许可）. **Downloaded third-party vocabulary, exam texts and dependencies retain their own licenses**（第三方词库、真题与依赖遵循各自许可，不能视为 MIT 内容）。详见 / See [Data & licenses](docs/DATA.md).
+
+学习记录默认保存在本机，不需要注册账号。/ Learning records are stored locally; no account is required. See [Privacy / 隐私说明](PRIVACY.md).
