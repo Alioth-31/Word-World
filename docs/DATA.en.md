@@ -4,7 +4,9 @@
 
 ## Building the vocabulary
 
-This repository includes **125 original demo entries** but no complete third-party dictionaries, full exam passages, or teaching materials. The builder can retrieve postgraduate vocabulary, CET overlap labels, and structured English I material from 2010–2025 to calculate vocabulary priority scores.
+The repository **bundles 5,530 authentic postgraduate vocabulary entries**, with source definitions, British IPA, raw source frequencies and separate ranking fields. A **3,050-word core list** contributes to importance scoring. This vocabulary is licensed separately under **CC BY-NC-SA 4.0** ([full license text](../app/data/LICENSE-CC-BY-NC-SA-4.0.txt)); it is **not MIT-licensed**.
+
+Upstream exam/news/example sentences are not bundled due to separate third-party rights. A small number of original practice sentences are included only as optional aids. The builder can update the vocabulary and, when available, use 2010–2025 English I passage token counts.
 
 ```bash
 npm install
@@ -15,9 +17,9 @@ node scripts/prepare-data.cjs --without-corpus
 node scripts/prepare-data.cjs --offline
 ```
 
-The `sources/` directory is Git-ignored. Generated `app/data/vocabulary.js` may contain third-party licensed data and must not be redistributed under this project's MIT license.
+The `sources/` directory is Git-ignored. `app/data/vocabulary.js` **already contains upstream-licensed vocabulary data** and must not be redistributed under the project's MIT license. Running the builder replaces this file with a newly generated version.
 
-The priority ranking is an **unvalidated heuristic**. Exact token matches are not lemmatized matches and cannot establish which sense of a polysemous word occurs in a passage. With insufficient corpus data, scoring falls back to source fields and is **not** an independently verified English I frequency list.
+**The two rankings differ**: source frequency counts come from mixed exam corpora (including CET, postgraduate and TEM examinations), **not English I alone**. Composite importance is a separate **unvalidated heuristic** incorporating source-provided exam counts, mixed frequency, CEFR and core-set membership. Exact token matches are not lemmatized matches and cannot establish which sense of a polysemous word occurs in a passage. With insufficient corpus data, scoring falls back to source fields and is **not** an independently verified English I frequency list.
 
 ## Third-party sources
 

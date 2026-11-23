@@ -40,3 +40,24 @@ test('full vocabulary builder validates count and produces a standalone JS asset
  assert.match(text,/"count":5530/);assert.match(text,/word5529/);
  fs.rmSync(base,{recursive:true,force:true});
 });
+
+test('importance rank and raw frequency rank are independent ordering systems',()=>{
+ const ranked=generatePriority({'5530考研词汇词频排序表':[
+  {'单词':'semantic','词频':15,'真题次数':140},
+  {'单词':'the','词频':40000,'真题次数':0},
+  {'单词':'address','词频':120,'真题次数':2}
+ ]});
+ assert.equal(ranked.records.the.frequencyRank,1);
+ assert.equal(ranked.records.semantic.rank,1);
+ assert.notEqual(ranked.records.the.frequencyRank,ranked.records.the.rank);
+});
+test('core list contributes to importance, not raw word frequency',()=>{
+ const data={'5530考研词汇词频排序表':[
+  {'单词':'context','词频':100,'真题次数':10},
+  {'单词':'syntax','词频':100,'真题次数':10}
+ ]};
+ const ranked=generatePriority(data,null,new Set(['syntax']));
+ assert.equal(ranked.records.syntax.rank,1);
+ assert.equal(ranked.records.syntax.core,true);
+ assert.equal(ranked.records.context.frequencyRank,1);
+});

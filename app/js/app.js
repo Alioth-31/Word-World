@@ -1,15 +1,18 @@
 (() => {
 'use strict';
 const VOCAB = (window.WORD_WORLD_VOCAB || []).filter(w => w && typeof w.word === 'string' && w.word.trim());
-const vocabById = new Map(VOCAB.map(w => [w.word.toLowerCase(), w]));
+const vocabById = new Map(VOCAB.map(w => [w.word, w]));
+const vocabByLower = new Map(VOCAB.map(w => [w.word.toLowerCase(), w]));
+const wordKey = word => String(word||'')==='May'||String(word||'')==='March' ? String(word) : String(word||'').toLowerCase();
 const STORAGE_KEY = 'wordworld_state_v1';
 const todayKey = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const $ = id => document.getElementById(id);
-const getWord = id => vocabById.get(String(id||'').toLowerCase());
+const getWord = id => vocabById.get(String(id||'')) || vocabByLower.get(String(id||'').toLowerCase());
 const escapeHTML = str => String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const priorityWeight = {P0:0,P1:1,P2:2,P3:3};
 const rank = w => Number(w.priority?.rank ?? 99999);
-const priorityCompare = (a,b) => (priorityWeight[a.priority?.level]??9)-(priorityWeight[b.priority?.level]??9) || rank(a)-rank(b) || a.word.localeCompare(b.word,'en');
+const frequency = w => Number(w.frequency ?? w.priority?.mixedFreq ?? 0);
+const priorityCompare = (a,b) => rank(a)-rank(b) || a.word.localeCompare(b.word,'en');
+const frequencyCompare = (a,b) => frequency(b)-frequency(a) || priorityCompare(a,b);
 const todayDate = todayKey();
 let state = loadState();
 let activePage = 'today';
@@ -29,7 +32,7 @@ function loadState(){
 function defaults(){return {schema:3,progress:{},saved:{},prefs:{goal:20,theme:'night',reduceMotion:false},daily:{},createdAt:new Date().toISOString()}}
 function persist(){ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(err){toast('本地存储失败，请及时导出备份');return false} }
 function daily(){if(!state.daily[todayKey()])state.daily[todayKey()]={new:0,reviews:0,success:0};return state.daily[todayKey()]}
-function progressOf(word){return state.progress[word.toLowerCase()]||null}
+function progressOf(word){return state.progress[wordKey(word)]||null}
 function dueWords(){const now=Date.now();return VOCAB.filter(w=>{const p=progressOf(w.word);return p && Date.parse(p.due)<=now}).sort((a,b)=>Date.parse(progressOf(a.word).due)-Date.parse(progressOf(b.word).due)||priorityCompare(a,b))}
 function pendingNew(){return VOCAB.filter(w=>!progressOf(w.word)).sort(priorityCompare)}
 function countStable(){return Object.values(state.progress).filter(p=>p && p.interval>=21*86_400_000).length}
@@ -37,8 +40,8 @@ function activeLearned(){return VOCAB.filter(w=>progressOf(w.word)).length}
 function label(w){return w.priority?.level || '考研词'}
 function hintRank(w){return Number.isInteger(w.priority?.rank) ? `排序 #${w.priority.rank}` : '待评级'}
 function isSample(){return window.WORD_WORLD_META?.sample === true}
-function isSaved(word){return !!state.saved[word.toLowerCase()]}
-function toggleSave(word){const id=word.toLowerCase();if(state.saved[id])delete state.saved[id];else state.saved[id]=true;persist();updateSaveButtons();if(activePage==='library')renderLibrary();toast(state.saved[id]?'已加入收藏':'已取消收藏')}
+function isSaved(word){return !!state.saved[wordKey(word)]}
+function toggleSave(word){const id=wordKey(word);if(state.saved[id])delete state.saved[id];else state.saved[id]=true;persist();updateSaveButtons();if(activePage==='library')renderLibrary();toast(state.saved[id]?'已加入收藏':'已取消收藏')}
 function updateSaveButtons(){if(session){$('study-bookmark').classList.toggle('is-saved',isSaved(session.wordIds[session.index]));$('study-bookmark').setAttribute('aria-pressed',isSaved(session.wordIds[session.index]))}if(currentDetail){$('detail-bookmark').classList.toggle('is-saved',isSaved(currentDetail));$('detail-bookmark').setAttribute('aria-pressed',isSaved(currentDetail))}}
 function toast(text){const node=$('toast');node.textContent=text;node.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.remove('is-visible'),2500)}
 function haptic(){if(navigator.vibrate && !state.prefs.reduceMotion)try{navigator.vibrate(10)}catch{}}
@@ -91,7 +94,8 @@ function getLibraryResults(){
   if(q && !w.word.toLowerCase().includes(q) && !String(w.meaning||'').toLowerCase().includes(q))return false;
   return true;
  });
- if(order==='alpha')result.sort((a,b)=>a.word.localeCompare(b.word,'en'));
+ if(order==='frequency')result.sort(frequencyCompare);
+  else if(order==='alpha')result.sort((a,b)=>a.word.localeCompare(b.word,'en'));
  else if(order==='unlearned')result.sort((a,b)=>(!!progressOf(a.word))-(!!progressOf(b.word))||priorityCompare(a,b));
  else result.sort(priorityCompare);
  return result;
@@ -105,19 +109,19 @@ function renderLibrary(reset=true){
  for(const [i,w] of libraryResults.slice(0,visibleCount).entries()){
   const row=document.createElement('button');row.type='button';row.className='word-row';row.dataset.word=w.word;
   const learned=!!progressOf(w.word);
-  row.innerHTML=`<span class="word-index">${String(i+1).padStart(2,'0')}</span><span class="word-description"><strong>${escapeHTML(w.word)}</strong><small>${escapeHTML(w.meaning||'暂无释义')}</small></span><span class="word-status ${learned?'is-learned':''}">${learned?'已学习':escapeHTML(label(w))}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><path d="m9 5 7 7-7 7"/></svg>`;
+  row.innerHTML=`<span class="word-index">${String((($('library-order').value==='frequency'?w.priority?.frequencyRank:w.priority?.rank)||i+1)).padStart(2,'0')}</span><span class="word-description"><strong>${escapeHTML(w.word)}</strong><small>${escapeHTML(w.meaning||'暂无释义')}</small>${frequency(w)?`<small class="word-freq">来源词频 ${frequency(w).toLocaleString('en-US')}${w.priority?.core?' · 核心词表':''}</small>`:''}</span><span class="word-status ${learned?'is-learned':''}">${learned?'已学习':escapeHTML(label(w))}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"><path d="m9 5 7 7-7 7"/></svg>`;
   frag.appendChild(row);
  }
  list.appendChild(frag);
  $('load-more').hidden=visibleCount>=libraryResults.length;
  const meta=window.WORD_WORLD_META||{};
- $('dataset-disclaimer').textContent=isSample() ? '当前为 125 词演示数据库。构建完整版 APK 时自动载入考研大纲词汇并重新排序，演示数据不代表正式考研词频排名。' : `考研优先级来源：${meta.source||'公开考研词汇数据'}。排序是学习建议，并非官方考试难度分级。`;
+ $('dataset-disclaimer').textContent=isSample() ? '当前仅包含演示词汇，暂无可靠的词频排名。' : `已收录 ${VOCAB.length.toLocaleString('en-US')} 个真实词条。综合重要性是启发式学习排序；来源词频基于四六级、考研、专四专八混合语料，非纯英语一词频。词义由开放数据提供，尚未逐项人工核校。`; 
 }
 function showDetail(word){
  const w=getWord(word);if(!w)return;
  currentDetail=w.word;const shell=$('detail-shell');shell.classList.remove('is-hidden');shell.setAttribute('aria-hidden','false');
  $('detail-word').textContent=w.word;$('detail-phonetic').textContent=w.phonetic||'点击发音';
- $('detail-priority').textContent=`考研英语一 · ${label(w)} · ${hintRank(w)}${w.tags?.includes('六级')?' · 六级重合':''}`;
+ $('detail-priority').textContent=`${label(w)} · 重要性 #${w.priority?.rank??'—'} · 来源词频 ${frequency(w).toLocaleString('en-US')}${w.tags?.includes('六级')?' · 六级重合':''}${w.priority?.core?' · 核心词表':''}`;
  $('detail-meaning').textContent=w.meaning||'暂无词义';$('detail-extra').textContent=w.extraMeaning||'';
  if(w.example){$('detail-context').hidden=false;$('detail-example').textContent=w.example;$('detail-example-zh').textContent=w.exampleZh||'';
   $('detail-context-label').textContent=w.exampleType==='exam'?'真题语境 / EXAM CONTEXT':'例句 / CONTEXT';
@@ -160,7 +164,7 @@ function reveal(){if(!session||session.revealed)return;session.revealed=true;
  haptic();$('study-prompt').classList.add('is-hidden');$('reveal-content').classList.remove('is-hidden');
  $('reveal-answer').classList.add('is-hidden');$('rating-buttons').classList.remove('is-hidden');
  $('study-meaning').textContent=w.meaning||'暂无释义';$('study-extra-meaning').textContent=w.extraMeaning||'';
- $('study-ranking').textContent=isSample()?'示例词汇':hintRank(w);
+ $('study-ranking').textContent=isSample()?'示例词汇':`重要性 #${w.priority?.rank??'—'} · 来源词频 ${frequency(w).toLocaleString('en-US')}`;
  $('context-block').hidden=!w.example;
  if(w.example){$('context-caption').textContent=w.exampleType==='exam'?'EXAM CONTEXT / 真题语境':'CONTEXT / 语境例句';$('study-example').textContent=w.example;
  $('study-example-zh').textContent=w.exampleZh||'';$('context-source').textContent=w.exampleSource||'来源未核对'}
@@ -168,7 +172,7 @@ function reveal(){if(!session||session.revealed)return;session.revealed=true;
 }
 function recordRating(rating){if(!session||!session.revealed||clickBlock)return;
  const w=getWord(session.wordIds[session.index]);if(!w)return;
- clickBlock=true;const key=w.word.toLowerCase(),prev=progressOf(w.word),wasNew=!prev,now=new Date();
+ clickBlock=true;const key=wordKey(w.word),prev=progressOf(w.word),wasNew=!prev,now=new Date();
  let result;try{result=window.StudyScheduler.review(prev,rating,now)}catch(err){console.error(err);toast('复习算法出现错误');clickBlock=false;return}
  state.progress[key]={...prev,...result,reviews:(prev?.reviews||0)+1,lastRating:rating};
  const record=daily();record.reviews++;if(rating==='good'||rating==='easy')record.success++;if(wasNew)record.new++;

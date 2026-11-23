@@ -74,7 +74,7 @@ function readExamOneCorpus(corpusDir) {
   return availableYears.length ? { counts, years, availableYears } : null;
 }
 
-function generatePriority(input, corpus = null) {
+function generatePriority(input, corpus = null, coreWords = null) {
   const rows = parseVocabulary(input);
   const byWord = new Map();
   for (const row of rows) {
@@ -119,7 +119,11 @@ function generatePriority(input, corpus = null) {
       r.score = 100 * (0.90 * scaled(r.mixedFreq, freqP95) + 0.07 * difficulty + 0.03 * academic);
       r.basis = '仅混合考试词频（缺少真题次数）';
     }
+    r.core = coreWords instanceof Set && coreWords.has(r.word.toLowerCase());
+    if(r.core) r.score += 8; // Open-source core list is a supplemental indicator, not an official exam classification.
   }
+  const byFrequency=[...records].sort((a,b)=>b.mixedFreq-a.mixedFreq||a.word.localeCompare(b.word,'en'));
+  byFrequency.forEach((r,i)=>r.frequencyRank=i+1);
   records.sort((a,b) => b.score - a.score || b.examCount - a.examCount || b.mixedFreq - a.mixedFreq || a.word.localeCompare(b.word, 'en'));
   const ranked = Object.create(null);
   const counts = { P0: 0, P1: 0, P2: 0, P3: 0 };
@@ -130,6 +134,8 @@ function generatePriority(input, corpus = null) {
     counts[level]++;
     ranked[row.word] = {
       rank: i + 1,
+      frequencyRank:row.frequencyRank,
+      core:row.core,
       level,
       score: Math.round(row.score * 100) / 100,
       examCount: row.examCountAvailable ? row.examCount : null,

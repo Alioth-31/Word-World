@@ -10,10 +10,12 @@ const isOffline=process.argv.includes('--offline');
 const withoutCorpus=process.argv.includes('--without-corpus');
 const vocabularyPath=path.join(sources,'netem_full_list.json');
 const cetPath=path.join(sources,'cet_full_list.json');
+const corePath=path.join(sources,'netem_core.json');
 const corpusDir=path.join(sources,'structured-kaoyan-english');
 const corpusRoot=path.join(corpusDir,'data');
 const examUrl='https://raw.githubusercontent.com/exam-data/NETEMVocabulary/master/netem_full_list.json';
 const cetUrl='https://raw.githubusercontent.com/exam-data/CETVocabulary/main/cet_full_list.json';
+const coreUrl='https://raw.githubusercontent.com/exam-data/NETEMVocabulary/master/data/core/netem_core.json';
 function download(url,dest){return new Promise((resolve,reject)=>{
   const req=https.get(url,{headers:{'User-Agent':'word-world-data-builder','Accept':'application/json'},timeout:18000},res=>{
    if([301,302,307,308].includes(res.statusCode)&&res.headers.location){res.resume();return download(res.headers.location,dest).then(resolve,reject)}
@@ -23,18 +25,15 @@ function download(url,dest){return new Promise((resolve,reject)=>{
   });req.on('timeout',()=>req.destroy(new Error('下载超时: '+url)));req.on('error',reject)
 })}
 async function getFile(url,dest){if(fs.existsSync(dest)&&fs.statSync(dest).size>200)return dest;if(isOffline)throw new Error('离线构建缺少文件 '+dest);console.log('下载',url);return download(url,dest)}
-function selectExample(item){
- const text=String(item['例句']||item.example||'').trim();
- const zh=String(item['例句翻译']||item.example_zh||'').trim();
- const original=String(item['例句来源']||item.example_source||'').trim();
- // Even if the source declares an exam reference, only display it as "source claimed";
- // exact source and year require independent verification.
- return {example:text,exampleZh:zh,exampleType:'corpus',exampleSource:original?'来源声称：'+original+'（未逐句核验）':'源词库附带例句（来源未核对）'};
-}
+// Upstream example sentences may have separate third-party copyrights.
+// Keep vocabulary and metadata only in distributable assets.
 async function main(){
  await getFile(examUrl,vocabularyPath);
  const raw=JSON.parse(fs.readFileSync(vocabularyPath,'utf8'));
  const rows=parseVocabulary(raw);
+ let coreWords=new Set();
+ try {await getFile(coreUrl,corePath);coreWords=new Set(parseVocabulary(JSON.parse(fs.readFileSync(corePath,'utf8'))).map(x=>String(x['单词']||x.word||'').trim().toLowerCase()));}
+ catch(e){console.warn('核心词表不可用，仅按完整词表评分：',e.message)}
  let cetWords=new Map();
  try {
    if(!withoutCorpus || fs.existsSync(cetPath))await getFile(cetUrl,cetPath);
@@ -59,7 +58,7 @@ async function main(){
   if(available>=12)corpus=readExamOneCorpus(corpusDir);
   else console.warn('真题语料未满 12 年，不作为评分主依据，使用源项目真题次数字段。');
  }
- const ranked=generatePriority(raw,corpus);
+ const ranked=generatePriority(raw,corpus,coreWords);
  const map=new Map();
  for(const item of rows){
   const word=String(item['单词']||item.word||'').trim();if(!word)continue;
@@ -69,18 +68,19 @@ async function main(){
   const six=cet?.['六级'];
   const isSix = six!==undefined && six!==null && !['', '0', 'false', '否', '无', 'no'].includes(String(six).trim().toLowerCase());
   const tags=['考研',...(cet?[isSix?'六级':'四级']:[])];
-  const base={word,meaning,phonetic:String(item['音标']||item.phonetic||'').trim(),tags,...selectExample(item),
-    priority:{level:p?.level||'P3',rank:p?.rank??null,score:p?.score??0,examCount:p?.examCount??null,exam1Count:p?.exam1Count??null,exam1Years:p?.exam1Years??null,basis:p?.basis||'原始词库'} };
-  if(!map.has(key))map.set(key,base);
-  else {const existing=map.get(key);if(meaning&&!existing.meaning.includes(meaning))existing.extraMeaning=[existing.extraMeaning,meaning].filter(Boolean).join('；');
+  const base={word,meaning,phonetic:String(item['英式音标']||item['音标']||item.phonetic||'').trim(),tags,
+    category:String(item['分类名称']||'').trim(),frequency:Number(item['词频'])||0,
+    priority:{level:p?.level||'P3',rank:p?.rank??null,frequencyRank:p?.frequencyRank??null,core:coreWords.has(key),score:p?.score??0,examCount:p?.examCount??null,exam1Count:p?.exam1Count??null,exam1Years:p?.exam1Years??null,basis:p?.basis||'原始词库'} }; 
+  if(!map.has(word))map.set(word,base);
+  else {const existing=map.get(word);if(meaning&&!existing.meaning.includes(meaning))existing.extraMeaning=[existing.extraMeaning,meaning].filter(Boolean).join('；');
    if((p?.rank||Infinity)<(existing.priority.rank||Infinity))existing.priority=base.priority;
   }
  }
  const items=[...map.values()].sort((a,b)=>(a.priority.rank||99999)-(b.priority.rank||99999)||a.word.localeCompare(b.word));
  if(items.length<5000||items.length>7000)throw new Error('考研词库规模异常：'+items.length);
- const meta={sample:false,count:items.length,cetMatches:items.filter(x=>x.tags.length>1).length,source:'exam-data/NETEMVocabulary + exam-data/CETVocabulary + LIziak112/structured-kaoyan-english',rankMethod:ranked.method,corpusYears:ranked.corpusYears,license:'CC BY-NC-SA 4.0; 非商业学习用途',createdAt:new Date().toISOString()};
+ const meta={sample:false,count:items.length,cetMatches:items.filter(x=>x.tags.length>1).length,source:'exam-data/NETEMVocabulary + exam-data/CETVocabulary (full + core; corpus counts optional)',rankMethod:ranked.method,corpusYears:ranked.corpusYears,license:'CC BY-NC-SA 4.0; 非商业学习用途',createdAt:new Date().toISOString()};
  fs.mkdirSync(path.dirname(output),{recursive:true});
- fs.writeFileSync(output,'/* 校验过数量的考研词表；真题释义与例句未逐句人工校核。 */\nwindow.WORD_WORLD_META = '+JSON.stringify(meta)+';\nwindow.WORD_WORLD_VOCAB = '+JSON.stringify(items)+';\n','utf8');
+ fs.writeFileSync(output,'/* 考研词汇数据：CC BY-NC-SA 4.0；释义未经逐项人工校核。 */\nwindow.WORD_WORLD_META = '+JSON.stringify(meta)+';\nwindow.WORD_WORLD_VOCAB = '+JSON.stringify(items)+';\n','utf8');
  console.log('已构建词库：',items.length,'词；真题覆盖年份：',ranked.corpusYears.join(',')||'未导入');
  console.log('输出文件：',output);
 }

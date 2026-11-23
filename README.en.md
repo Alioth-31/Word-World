@@ -1,6 +1,6 @@
 # Word World
 
-**An offline, context-first vocabulary learning app for China's postgraduate English I examination.**
+**An offline, vocabulary-first app for China's postgraduate English I exam, with independent importance and frequency rankings.**
 
 **Language / 语言: [简体中文](README.md) | English**
 
@@ -31,7 +31,9 @@ flowchart LR
 
 - Daily tasks: due reviews first, then new vocabulary.
 - Focused practice: recall, reveal, contextual examples, and four-grade feedback.
-- Dictionary: Chinese/English search, priority filters, bookmarks, and word details.
+- **Full vocabulary** — 5,530 authentic entries with pronunciations, meanings, source frequency counts, a 3,050-word core-list label and CET overlap information.
+- **Two ranking modes** — composite study importance (default) and descending raw source frequency; the rankings are independent.
+- Dictionary — Chinese/English search, filters, bookmarks, and word details.
 - Local records: on-device progress and JSON import/export.
 - Spaced repetition: Android builds integrate `ts-fsrs`; standalone HTML previews use a simplified fallback scheduler.
 
@@ -44,7 +46,7 @@ npm test
 npm run preview
 ```
 
-Open `output/preview.html`. No Android SDK is needed. The preview contains **125 demo entries**; these are not independently verified English I word-frequency or sense-importance rankings.
+Open `output/preview.html`. No Android SDK is needed. The preview includes the **full 5,530-word dictionary**. Original demonstration sentences are supplementary; words, definitions, pronunciations and ranking data are primary.
 
 ## Android build
 
@@ -52,12 +54,12 @@ Open [GitHub Actions · Android APK](https://github.com/Alioth-31/Word-World/act
 
 On Windows, install Node.js 22+, JDK 21+, and the Android SDK, then run `build-android.cmd`. A successful build writes `output/word-world-debug.apk`.
 
-> There is currently no production APK validated on a physical device. Complete vocabulary data is obtained from third-party sources during the build and can be affected by network access, upstream changes, and license restrictions. The Android workflow must run separately: a green Tests badge **does not** establish that the APK builds successfully.
+> There is currently no production APK validated on a physical device. The full vocabulary is bundled in the repository; Android builds may fetch upstream data to refresh ranking inputs. These updates depend on network availability and upstream sources. The Android workflow must run separately: a green Tests badge **does not** establish that the APK builds successfully.
 
 ## Repository layout
 
 ```text
-app/                   UI, scheduling logic and demo vocabulary
+app/                   UI, scheduling logic and 5,530-word licensed vocabulary
 assets/                Android icon assets
 scripts/               Vocabulary processing and build tools
 tests/                 Automated tests
@@ -67,7 +69,7 @@ docs/                  Data notices and interface screenshots
 
 ## Data, license and privacy
 
-Original code is distributed under the [MIT License](LICENSE). Downloaded third-party word lists, examples, and exam materials **are not covered by this project's MIT license**. Vocabulary priorities are derived from an unvalidated heuristic.
+Original code is distributed under the [MIT License](LICENSE). The **bundled vocabulary is licensed under CC BY-NC-SA 4.0**, not this project's MIT license. Source frequency counts combine several English exams and are **not English I-only frequencies**. Composite importance rankings are an unvalidated learning heuristic.
 
 - [Data sources and third-party licenses](docs/DATA.en.md)
 - [Privacy notice](PRIVACY.en.md)

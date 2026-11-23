@@ -1,7 +1,7 @@
 {
   "name": "word-world",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Offline vocabulary study for the English I postgraduate entrance examination",
   "type": "commonjs",
   "scripts": {
