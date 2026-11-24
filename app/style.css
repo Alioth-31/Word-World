@@ -222,3 +222,16 @@ body { background:#e9e5dc; }
 .diagnostic-entry span,.diagnostic-entry p {display:block;font-size:12px;line-height:1.6;margin:4px 0;}
 .diagnostic-ratings {grid-template-columns:repeat(3,minmax(0,1fr));}
 .diagnostic-ratings[hidden] {display:none;}
+
+.ability-shell {position:fixed;inset:0;z-index:45;background:#faf8f2;color:#253a33;overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(24px + env(safe-area-inset-bottom,0px));}
+.ability-panel {max-width:540px;margin:auto;display:grid;gap:14px;}
+.ability-panel h2 {font-size:clamp(21px,5vw,29px);line-height:1.45;margin:6px 0;overflow-wrap:anywhere;}
+.ability-panel p {line-height:1.6;margin:0;}
+.ability-panel button,.ability-panel input {font:inherit;padding:12px;border:1px solid #c8c3b7;background:transparent;color:inherit;border-radius:0;}
+.ability-panel button {text-align:left;cursor:pointer;min-height:44px;}
+.ability-panel button:disabled {opacity:.62;cursor:default;}
+.ability-options {display:grid;gap:8px;}
+#ability-form {display:grid;gap:8px;}
+#ability-form[hidden],#ability-next[hidden] {display:none;}
+.ability-stats {font-size:13px;line-height:1.7;}
+.ability-stats p {padding:8px 0;border-bottom:1px solid #ddd8cd;margin:0;}

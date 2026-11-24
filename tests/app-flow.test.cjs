@@ -40,7 +40,7 @@ function setup(initialState){
  const win={WORD_WORLD_VOCAB:[],WORD_WORLD_META:null,StudyScheduler:null,scrollTo(){},addEventListener(){},Capacitor:null};
  const ctx=vm.createContext({window:win,document:doc,localStorage,Date,Intl,console,navigator:{vibrate(){}},setTimeout:fn=>{fn();return 1},clearTimeout(){},Blob,URL,TextEncoder,SpeechSynthesisUtterance:class {},confirm:()=>true});
  const js=f=>vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),ctx,{filename:f});
- js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/content.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
+ js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/content.js');js('app/data/abilities.js');js('app/js/abilities.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
  els.get('library-order').value='priority';els.get('search-words').value='';
  js('app/js/app.js');
  return {els,doc,win,local,nav,chips};
@@ -433,4 +433,73 @@ test('old backups default to the original book without changing study state',()=
  assert.equal(restored.els.get('today-book').value,'netem');
  restored.nav[2].click();
  assert.equal(restored.els.get('records-learned').textContent,1);
+});
+
+test('ability exercises use objective answers, separate memory, and immediate feedback',()=>{
+ const {els,win,local}=setup();
+ const model=win.WordWorldAbilities;
+ const first=model.queue({},win.WordWorldContent.allWords,new Date())[0];
+ if(!first)return;
+ els.get('start-ability').click();
+ const q=model.variant(first,null);
+ const wrong=(q.correct+1)%q.options.length;
+ els.get('ability-options').children[wrong].click();
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.abilities[first.id].lastCorrect,false);
+ assert.equal(state.abilities[first.id].attempts,1);
+ assert.equal(Object.keys(state.progress).length,0);
+ assert.match(els.get('ability-feedback').textContent,/正确答案/);
+ els.get('ability-options').children[wrong].click();
+ assert.equal(JSON.parse(local.get('wordworld_state_v1')).abilities[first.id].attempts,1);
+ els.get('ability-next').click();
+ assert.ok(els.get('ability-progress').textContent.includes('2/'));
+ els.get('ability-close').click();
+ const restored=setup(state);
+ assert.ok(restored.win.WordWorldAbilities.summary(state.abilities,restored.win.WordWorldContent.allWords,new Date()).some(s=>s.weak===1));
+});
+test('ability retesting changes context, selects due tasks, and preserves first attempt evidence',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities,words=win.WordWorldContent.allWords;
+ const item=m.bank.find(q=>q.skill==='context');if(!item)return;
+ const q=m.variant(item,null),now=new Date('2026-01-01T00:00:00Z');
+ const r=m.record(item,null,(q.correct+1)%q.options.length,now,win.StudyScheduler);
+ const later=new Date(Date.parse(r.memory.due)+1000);
+ const records={[item.id]:r};
+ assert.equal(m.queue(records,words,later)[0].id,item.id);
+ const alternate=m.variant(item,r);assert.ok(alternate.prompt!==q.prompt);
+ const next=m.record(item,r,alternate.correct,later,win.StudyScheduler);
+ assert.equal(next.attempts,2);assert.equal(next.firstCorrect,false);assert.equal(next.lastCorrect,true);
+ assert.equal(next.correct,1);
+ assert.equal(m.summary({[item.id]:next},words,later).find(s=>s.skill==='context').weak,0);
+});
+test('spelling uses normalized typed answers rather than choices',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities,item=m.bank.find(x=>x.skill==='spelling');if(!item)return;
+ const q=m.variant(item,null);
+ assert.equal(m.check(q,' '+q.answer.toUpperCase()+' '),true);
+ assert.equal(m.check(q,q.answer+'x'),false);
+ assert.equal(m.check(q,0),false);
+});
+test('ability exercises remain separate from word learning across books and backups',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities,words=win.WordWorldContent.allWords;
+ const item=m.bank.find(x=>!win.WordWorldContent.getWord(x.word).tags?.includes('六级'));if(!item)return;
+ const q=m.variant(item,null),now=new Date('2025-01-01T00:00:00Z');
+ const r=m.record(item,null,q.options?q.correct:q.answer,now,win.StudyScheduler);
+ const stored={schema:3,progress:{},saved:{},prefs:{book:'cet6-overlap'},daily:{},abilities:{[item.id]:r,bogus:r}};
+ const restored=setup(stored);
+ assert.equal(Object.keys(m.normalize(stored.abilities)).length,1);
+ assert.ok(!m.queue(stored.abilities,win.WordWorldContent.book('cet6-overlap').words,new Date()).some(x=>x.id===item.id));
+ restored.els.get('start-ability-review').click();
+ assert.ok(restored.els.get('ability-prompt').textContent.length>0);
+ assert.equal(restored.els.get('ability-shell').classList.contains('is-hidden'),false);
+});
+test('pilot bank has unique IDs, two distinct variants and internally valid answer keys',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities;
+ assert.equal(new Set(m.bank.map(x=>x.id)).size,m.bank.length);
+ for(const item of m.bank){
+  assert.equal(item.variants.length,2);
+  assert.ok(item.variants[0].prompt!==item.variants[1].prompt);
+  for(const q of item.variants){
+   if(q.options){assert.equal(new Set(q.options).size,4);assert.ok(q.correct>=0&&q.correct<4)}
+   else assert.ok(typeof q.answer==='string'&&q.answer.length>0);
+  }
+ }
 });

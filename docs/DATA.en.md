@@ -79,3 +79,7 @@ Each round samples up to 12 previously unassessed entries without review records
 ### Shared content catalog and word books
 
 `app/js/content.js` owns access to bundled vocabulary and English I statistics and exposes word lookup, stable progress keys, book membership, and frequency lookup. The current NETEM book contains the existing vocabulary; the CET6 overlap book references the same entries tagged CET6 and is not a full CET6 list. No meanings or personal records are duplicated. `prefs.book` defaults to NETEM for legacy backups. New words, assessment and browsing are scoped to the selected book; the daily quota and due review queue remain global. Personal storage retains schema 3; no storage-engine migration has occurred.
+
+### Independent skill memory and objective practice
+
+The pilot asset contains 18 learning units with two original variants each (36 exercises), covering contextual senses, collocation choice and typed spelling. These are not exam questions and have not undergone psychometric validation. The ability engine scores answers, prioritizes due items, rotates new skills and variants, schedules independent FSRS reviews and reports item-level first-attempt outcomes. The optional `abilities` backup field stores records by stable unit ID without modifying word review records or daily vocabulary quotas. Cross-book skill reviews remain accessible. Results describe tested items only, not general proficiency or predicted exam scores.

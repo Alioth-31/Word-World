@@ -2,6 +2,7 @@
 'use strict';
 const content=window.WordWorldContent;
 const VOCAB=content.allWords;
+const abilities=window.WordWorldAbilities;
 const {wordKey,getWord,hasExam1,examRow}=content;
 const STORAGE_KEY = 'wordworld_state_v1';
 const todayKey = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
@@ -69,6 +70,7 @@ function normalizeState(obj){
   for(const w of VOCAB){const key=wordKey(w.word);if(Object.hasOwn(result.diagnostic,key)&&['unknown','partial','accurate'].includes(result.diagnostic[key]))diagnostic[key]=result.diagnostic[key]}
  }
  result.diagnostic=diagnostic;
+ result.abilities=abilities.normalize(result.abilities);
  return result;
 }
 function examSummary(w){
@@ -84,6 +86,7 @@ let state = loadState();
 state.prefs.studyOrder=normalizeOrder(state.prefs.studyOrder);
 let activePage = 'today';
 let session = null;
+let abilitySession=null;
 let currentDetail = null;
 let libraryResults = [];
 let visibleCount = 48;
@@ -96,7 +99,7 @@ function loadState(){
   } catch(err){console.warn('无法读取学习记录:',err)}
   return defaults();
 }
-function defaults(){return {schema:3,progress:{},saved:{},known:Object.create(null),diagnostic:Object.create(null),prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority',focus:'balanced',book:'netem'},daily:{},createdAt:new Date().toISOString()}}
+function defaults(){return {schema:3,progress:{},saved:{},known:Object.create(null),diagnostic:Object.create(null),abilities:Object.create(null),prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority',focus:'balanced',book:'netem'},daily:{},createdAt:new Date().toISOString()}}
 function persist(){ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(err){toast('本地存储失败，请及时导出备份');return false} }
 function daily(){if(!state.daily[todayKey()])state.daily[todayKey()]={new:0,reviews:0,success:0};return state.daily[todayKey()]}
 function progressOf(word){const key=wordKey(word);return Object.hasOwn(state.progress,key)?state.progress[key]:null}
@@ -116,7 +119,7 @@ function renderBookControls(){
  $('records-book-progress').textContent=book.title+'：已学习 '+progress.learned+' / '+progress.total+' 词 · 自认熟悉 '+progress.known+' 词';
 }
 function setBook(value){
- if(session)return;
+ if(session||abilitySession)return;
  state.prefs.book=content.normalizeBook(value);
  persist();renderBookControls();renderHome();renderRecords();renderLibrary();
 }
@@ -145,7 +148,7 @@ function page(which,focus=false){
   window.scrollTo(0,0);$('app-frame').scrollTop=0;
 }
 function renderHome(){
- renderBookControls();
+ renderBookControls();renderAbilitySummary();
   $('today-study-order').value=normalizeOrder(state.prefs.studyOrder);
   const due=dueWords().length;const done=daily();const goal=Number(state.prefs.goal)||20;
   const newAvailable=Math.max(0,goal-done.new),newTotal=Math.min(newAvailable,pendingNew().length);
@@ -172,7 +175,7 @@ function renderHome(){
  $('start-diagnostic').disabled=!activeBook().words.some(w=>!progressOf(w.word)&&!diagnosticResult(w.word));
 }
 function renderRecords(){
- renderBookControls();
+ renderBookControls();renderAbilitySummary();
  $('records-learned').textContent=activeLearned();$('records-due').textContent=dueWords().length;
  $('records-known').textContent=knownCount();$('records-diagnostic').textContent=Object.keys(state.diagnostic).length;$('records-weak').textContent=VOCAB.filter(pendingDiagnostic).length;$('study-focus').value=state.prefs.focus;
  $('records-strong').textContent=countStable();$('records-saved').textContent=Object.keys(state.saved).length;
@@ -359,7 +362,70 @@ function setStudyOrder(value){
  $('study-order').value=state.prefs.studyOrder;
  persist();renderHome();
 }
+function renderAbilitySummary(){
+ const stats=abilities.summary(state.abilities,activeBook().words,new Date());
+ const due=stats.reduce((sum,s)=>sum+s.due,0),total=stats.reduce((sum,s)=>sum+s.total,0),seen=stats.reduce((sum,s)=>sum+s.seen,0);
+ $('home-ability-summary').textContent='本词书试点题库：'+seen+'/'+total+' 项已测 · '+due+' 项待复习';
+ $('start-ability').disabled=!abilities.queue(state.abilities,activeBook().words,new Date()).length;
+ const list=$('ability-stats');list.replaceChildren();
+ for(const s of stats){
+  const p=document.createElement('p');p.textContent=s.label+'：首次答对 '+s.firstCorrect+'/'+s.seen+' 项 · 题库 '+s.total+' 项 · 待巩固 '+s.weak+' 项 · 到期 '+s.due+' 项';list.appendChild(p);
+ }
+ const global=abilities.summary(state.abilities,VOCAB,new Date()).reduce((sum,s)=>sum+s.due,0);
+ $('start-ability-review').disabled=global===0;
+ $('ability-global-due').textContent='全部词书能力复习：'+global+' 项到期';
+}
+function startAbility(globalReview=false){
+ if(session||abilitySession)return;
+ const now=new Date();
+ const items=abilities.queue(state.abilities,globalReview?VOCAB:activeBook().words,now);
+ const queue=globalReview?items.filter(item=>state.abilities[item.id]&&Date.parse(state.abilities[item.id].memory.due)<=now.getTime()):items;
+ if(!queue.length){toast('当前没有可安排的能力任务');return}
+ abilitySession={queue,index:0,answered:false,correct:0};
+ hideDetail();$('ability-shell').classList.remove('is-hidden');$('ability-shell').setAttribute('aria-hidden','false');
+ document.documentElement.style.overflow='hidden';showAbility();
+}
+function showAbility(){
+ const s=abilitySession;if(!s)return;
+ const item=s.queue[s.index];
+ if(!item){
+  $('ability-progress').textContent='训练完成';
+  $('ability-prompt').textContent='本轮答对 '+s.correct+'/'+s.queue.length+' 项';
+  $('ability-target').textContent='已更新独立能力记忆计划；答错项目将按记忆调度再次出现。';
+  $('ability-options').replaceChildren();$('ability-form').hidden=true;$('ability-next').hidden=true;
+  $('ability-feedback').textContent='';$('ability-close').textContent='返回学习首页';return;
+ }
+ s.answered=false;
+ const q=abilities.variant(item,state.abilities[item.id]);
+ $('ability-progress').textContent=abilities.labels[item.skill]+' · '+(s.index+1)+'/'+s.queue.length;
+ $('ability-prompt').textContent=q.prompt;$('ability-target').textContent=q.target?'判断划定词语：'+q.target:q.options?'选择恰当搭配':'输入英文单词';
+ $('ability-feedback').textContent='';$('ability-next').hidden=true;$('ability-close').textContent='退出训练';
+ const list=$('ability-options');list.replaceChildren();
+ $('ability-form').hidden=!!q.options;$('ability-input').value='';$('ability-input').disabled=false;$('ability-submit').disabled=false;
+ if(q.options)q.options.forEach((option,i)=>{const button=document.createElement('button');button.type='button';button.className='ability-option';button.textContent=option;button.addEventListener('click',()=>answerAbility(i));list.appendChild(button)});
+}
+function answerAbility(response){
+ const s=abilitySession;if(!s||s.answered||s.index>=s.queue.length)return;
+ const item=s.queue[s.index],previous=state.abilities[item.id],q=abilities.variant(item,previous);
+ if(!q.options&&(typeof response!=='string'||!response.trim()))return;
+ const result=abilities.record(item,previous,response,new Date(),window.StudyScheduler);
+ s.answered=true;if(result.lastCorrect)s.correct++;
+ state.abilities[item.id]=result;
+ // No change to ordinary word review data, familiar flags, or new-word quota.
+ persist();$('ability-feedback').textContent=(result.lastCorrect?'回答正确。':'正确答案：'+(q.options?q.options[q.correct]:q.answer)+'。')+item.explanation;
+ for(const button of $('ability-options').children)button.disabled=true;
+ $('ability-input').disabled=true;$('ability-submit').disabled=true;$('ability-next').hidden=false;
+}
+function nextAbility(){if(!abilitySession?.answered)return;abilitySession.index++;showAbility()}
+function closeAbility(){
+ abilitySession=null;$('ability-shell').classList.add('is-hidden');$('ability-shell').setAttribute('aria-hidden','true');document.documentElement.style.overflow='';page('today');
+}
 function bind(){
+ $('start-ability').addEventListener('click',()=>startAbility());
+ $('start-ability-review').addEventListener('click',()=>startAbility(true));
+ $('ability-form').addEventListener('submit',e=>{e.preventDefault();answerAbility($('ability-input').value)});
+ $('ability-next').addEventListener('click',nextAbility);
+ $('ability-close').addEventListener('click',closeAbility);
  const available=content.listBooks();
  for(const id of ['today-book','library-book','settings-book']){
   const node=$(id);
@@ -404,16 +470,18 @@ function bind(){
  $('import-backup').addEventListener('click',()=>$('backup-file').click());
  $('backup-file').addEventListener('change',e=>importBackup(e.target.files?.[0]));
  window.addEventListener('keydown',e=>{
-   if(e.key==='Escape'){if(isAppActive()){leaveSession();return}if(!$('detail-shell').classList.contains('is-hidden'))hideDetail();return}
+   if(e.key==='Escape'){if(abilitySession){closeAbility();return}if(isAppActive()){leaveSession();return}if(!$('detail-shell').classList.contains('is-hidden'))hideDetail();return}
+   if(abilitySession)return;
    const target=e.target;if(target?.tagName==='INPUT'||target?.tagName==='SELECT')return;
    if(isAppActive()){if(e.key===' '||e.key==='Enter'){if(!session?.revealed){e.preventDefault();reveal()}}else if(session?.revealed&&['1','2','3','4'].includes(e.key))recordRating(['again','hard','good','easy'][Number(e.key)-1])}
    else if(e.key==='/' && $('detail-shell').classList.contains('is-hidden')){e.preventDefault();page('library',true)}
  });
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(activePage==='today')renderHome();else if(activePage==='records')renderRecords()}});
- window.addEventListener('popstate',()=>{if(isAppActive())leaveSession();else if(currentDetail)hideDetail();else page('today')});
+ window.addEventListener('popstate',()=>{if(abilitySession)closeAbility();else if(isAppActive())leaveSession();else if(currentDetail)hideDetail();else page('today')});
  const capacitorApp=window.Capacitor?.Plugins?.App;
  if(capacitorApp?.addListener)capacitorApp.addListener('backButton',()=>{
-   if(isAppActive() || !$('finish-shell').classList.contains('is-hidden'))leaveSession();
+   if(abilitySession)closeAbility();
+   else if(isAppActive() || !$('finish-shell').classList.contains('is-hidden'))leaveSession();
    else if(currentDetail)hideDetail();
    else if(activePage!=='today')page('today');
    else capacitorApp.minimizeApp?.();

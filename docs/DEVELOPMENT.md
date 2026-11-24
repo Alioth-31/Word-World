@@ -11,3 +11,5 @@ Branch: `dev/exam1-vocabulary`
 Next: automated source import and full NETEM/CET6 union, independent versioned word-book manifests, content validation and installable offline packages; then storage migration and sense-level content/assessment. Keep stable IDs, provenance, and backup compatibility.
 
 Work in coherent milestones. Read only relevant files; do not push minor edits or merge automatically. Keep the distinction between self-reported familiarity, successful recall, scheduled review, and validated mastery.
+
+- Personalization phase 3: independently scored pilot skill bank (18 units / 36 variants), separate skill-level FSRS, due-first and round-robin new tasks, variant rotation, observed first-attempt and current weakness metrics, cross-book review. Original questions require broader content coverage and empirical calibration. No general exam-score inference.
