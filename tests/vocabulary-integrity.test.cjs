@@ -38,3 +38,27 @@ test('bundled vocabulary preserves independent, complete rankings',()=>{
  assert.equal(sorted[0].word,'the');
  assert.notEqual(words[0].word,sorted[0].word);
 });
+
+test('bundled importance ranking reproduces from its saved evidence and notes',()=>{
+ const {generatePriority}=require('../scripts/priority_core.cjs');
+ const context={window:{}};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../app/data/vocabulary.js'),'utf8'),context,{timeout:10000});
+ const words=context.window.WORD_WORLD_VOCAB,meta=context.window.WORD_WORLD_META;
+ assert.equal(meta.rankVersion,2);
+ const core=new Set(words.filter(w=>w.priority.core).map(w=>w.word));
+ const rows=words.map(w=>({word:w.word,frequency:w.frequency,examCount:w.priority.examCount,cefr:w.priority.cefr,academic:w.priority.academic}));
+ const years=meta.corpusYears||[];
+ const corpus=years.length?{availableYears:years,counts:new Map(words.map(w=>[w.word.toLowerCase(),w.priority.exam1Count])),years:new Map(words.map(w=>[w.word.toLowerCase(),w.priority.exam1Years]))}:null;
+ const {records}=generatePriority(rows,corpus,core);
+ for(const w of words){
+   assert.equal(records[w.word].rank,w.priority.rank,'importance rank mismatch: '+w.word);
+   assert.equal(records[w.word].score,w.priority.score,'importance score mismatch: '+w.word);
+   assert.equal(records[w.word].frequencyRank,w.priority.frequencyRank,'frequency rank mismatch: '+w.word);
+ }
+ const notes=JSON.parse(fs.readFileSync(path.join(__dirname,'../data/sense-notes.json'),'utf8'));
+ for(const [word,note] of Object.entries(notes)){
+  assert.ok(words.find(w=>w.word===word)?.extraMeaning.includes(note.meaning));
+  assert.match(note.reference,/^https:\/\/dictionary\.cambridge\.org\//);
+ }
+ assert.equal(meta.senseNotes,Object.keys(notes).length);
+});

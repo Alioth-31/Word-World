@@ -2,36 +2,17 @@
 const fs = require('fs');
 const path = require('path');
 
-function number(value) {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-  const n = Number(String(value ?? '').replace(/,/g, '').trim());
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
+function number(value){if(value==null||String(value).trim()==='')return null;const n=Number(String(value).replace(/,/g,''));return Number.isFinite(n)&&n>=0?n:null;}
 
-function pick(record, ...keys) {
-  for (const key of keys) if (Object.prototype.hasOwnProperty.call(record, key)) return record[key];
-  return undefined;
-}
+function pick(r,...keys){for(const k of keys)if(Object.prototype.hasOwnProperty.call(r,k))return r[k];}
 
 function parseVocabulary(input) {
   if (Array.isArray(input)) return input;
   if (!input || typeof input !== 'object') throw new Error('Invalid dictionary JSON');
-  const known = input['5530考研词汇词频排序表'];
-  if (Array.isArray(known)) return known;
-  const tables = Object.entries(input).filter(([, value]) => Array.isArray(value));
-  if (tables.length === 1) return tables[0][1];
+  const tables=Object.values(input).filter(Array.isArray);
+  if(Array.isArray(input['5530考研词汇词频排序表'])) return input['5530考研词汇词频排序表'];
+  if(tables.length===1)return tables[0];
   throw new Error('Cannot locate main vocabulary array in source data');
-}
-
-function percentile95(values) {
-  if (!values.length) return 1;
-  const sorted = [...values].sort((a, b) => a - b);
-  const result = sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)];
-  return Math.max(1, result);
-}
-
-function scaled(value, p95) {
-  return Math.min(1, Math.log1p(Math.max(0, value)) / Math.log1p(Math.max(1, p95)));
 }
 
 function readExamOneCorpus(corpusDir) {
@@ -74,80 +55,39 @@ function readExamOneCorpus(corpusDir) {
   return availableYears.length ? { counts, years, availableYears } : null;
 }
 
-function generatePriority(input, corpus = null, coreWords = null) {
-  const rows = parseVocabulary(input);
-  const byWord = new Map();
-  for (const row of rows) {
-    const word = String(pick(row, '单词', 'word') ?? '').trim();
-    if (!word || byWord.has(word)) continue;
-    const examRaw = pick(row, '真题次数', 'exam_count', 'examCount');
-    const examCountAvailable = examRaw !== undefined && examRaw !== null && String(examRaw).trim() !== '';
-    const rec = {
-      word,
-      examCount: number(examRaw),
-      examCountAvailable,
-      mixedFreq: number(pick(row, '词频', 'frequency', 'freq')),
-      cefr: String(pick(row, 'CEFR等级', 'cefr') ?? '').toUpperCase().trim(),
-      academic: ['1', 'true', 'yes', '是'].includes(String(pick(row, '学术词汇', 'academic') ?? '').toLowerCase().trim()),
-      corpusCount: corpus ? (corpus.counts.get(word.toLowerCase()) || 0) : null,
-      corpusYears: corpus ? (corpus.years.get(word.toLowerCase()) || 0) : null
-    };
-    byWord.set(word, rec);
+function generatePriority(input, corpus=null, coreWords=null){
+  const byWord=new Map();
+  for(const row of parseVocabulary(input)){
+    const word=String(pick(row,'单词','word')??'').trim();
+    if(!word||byWord.has(word))continue;
+    const examCount=number(pick(row,'真题次数','exam_count','examCount'));
+    const mixedFreq=number(pick(row,'词频','frequency','freq'));
+    if(mixedFreq===null)throw new Error('Invalid source frequency: '+word);
+    const cefr=String(pick(row,'CEFR等级','cefr')??'').trim().toUpperCase();
+    const academic=['1','true','yes','是'].includes(String(pick(row,'学术词汇','academic')??'').toLowerCase().trim());
+    byWord.set(word,{word,examCount,mixedFreq,cefr,academic,core:coreWords instanceof Set&&coreWords.has(word),corpusCount:corpus?(corpus.counts.get(word.toLowerCase())||0):null,corpusYears:corpus?(corpus.years.get(word.toLowerCase())||0):null});
   }
-  const records = [...byWord.values()];
-  if (records.length === 0) throw new Error('Vocabulary source contains no words');
-  const examP95 = percentile95(records.filter(x => x.examCountAvailable).map(x => x.examCount));
-  const freqP95 = percentile95(records.map(x => x.mixedFreq));
-  const corpusP95 = corpus ? percentile95(records.map(x => x.corpusCount)) : 1;
-  const maxYears = corpus ? corpus.availableYears.length : 1;
-  const levels = { A1: 0, A2: 0.25, B1: 0.5, B2: 0.75, C1: 1, C2: 1 };
-
-  for (const r of records) {
-    const difficulty = levels[r.cefr] ?? 0.4;
-    const academic = r.academic ? 1 : 0;
-    if (corpus) {
-      r.score = 100 * (0.48 * scaled(r.corpusCount, corpusP95)
-        + 0.19 * (r.corpusYears / maxYears)
-        + 0.16 * (r.examCountAvailable ? scaled(r.examCount, examP95) : scaled(r.mixedFreq, freqP95))
-        + 0.12 * scaled(r.mixedFreq, freqP95) + 0.04 * difficulty + 0.01 * academic);
-      r.basis = `英语一真题正文原形词频（${corpus.availableYears.join(',')}）+补充数据`;
-    } else if (r.examCountAvailable) {
-      r.score = 100 * (0.62 * scaled(r.examCount, examP95)
-        + 0.28 * scaled(r.mixedFreq, freqP95) + 0.07 * difficulty + 0.03 * academic);
-      r.basis = '真题样本次数+混合考试词频';
-    } else {
-      r.score = 100 * (0.90 * scaled(r.mixedFreq, freqP95) + 0.07 * difficulty + 0.03 * academic);
-      r.basis = '仅混合考试词频（缺少真题次数）';
-    }
-    r.core = coreWords instanceof Set && coreWords.has(r.word.toLowerCase());
-    if(r.core) r.score += 8; // Open-source core list is a supplemental indicator, not an official exam classification.
+  const records=[...byWord.values()];
+  if(!records.length)throw new Error('Vocabulary source contains no words');
+  const maximum=field=>Math.max(1,...records.map(r=>r[field]??0));
+  const scale=(v,max)=>Math.log1p(v??0)/Math.log1p(max);
+  const examMax=maximum('examCount'),freqMax=maximum('mixedFreq'),corpusMax=maximum('corpusCount');
+  const difficulty={A1:0,A2:.25,B1:.5,B2:.75,C1:1,C2:1};
+  const years=corpus?.availableYears||[];
+  for(const r of records){
+    const e=scale(r.examCount,examMax),f=scale(r.mixedFreq,freqMax),d=difficulty[r.cefr]??.5,a=+r.academic,c=+r.core;
+    // Missing exam evidence receives no contribution, rather than redistributing its weight.
+    r.score=years.length?100*(.30*scale(r.corpusCount,corpusMax)+.15*r.corpusYears/years.length+.30*e+.12*f+.08*c+.04*d+.01*a):100*(.56*e+.26*f+.10*c+.06*d+.02*a);
+    r.basis=years.length?'英语一正文表面词形计数+来源指标':r.examCount===null?'真题次数缺失；仅按可用来源指标贡献评分':'真题样本次数+混合考试词频';
   }
-  const byFrequency=[...records].sort((a,b)=>b.mixedFreq-a.mixedFreq||a.word.localeCompare(b.word,'en'));
-  byFrequency.forEach((r,i)=>r.frequencyRank=i+1);
-  records.sort((a,b) => b.score - a.score || b.examCount - a.examCount || b.mixedFreq - a.mixedFreq || a.word.localeCompare(b.word, 'en'));
-  const ranked = Object.create(null);
-  const counts = { P0: 0, P1: 0, P2: 0, P3: 0 };
-  const n = records.length;
-  records.forEach((row, i) => {
-    const fraction = i / n;
-    const level = fraction < 0.2 ? 'P0' : fraction < 0.5 ? 'P1' : fraction < 0.8 ? 'P2' : 'P3';
-    counts[level]++;
-    ranked[row.word] = {
-      rank: i + 1,
-      frequencyRank:row.frequencyRank,
-      core:row.core,
-      level,
-      score: Math.round(row.score * 100) / 100,
-      examCount: row.examCountAvailable ? row.examCount : null,
-      mixedFreq: row.mixedFreq,
-      exam1Count: row.corpusCount,
-      exam1Years: row.corpusYears,
-      basis: row.basis
-    };
+  const compareWord=(a,b)=>a.word.localeCompare(b.word,'en');
+  [...records].sort((a,b)=>b.mixedFreq-a.mixedFreq||compareWord(a,b)).forEach((r,i)=>r.frequencyRank=i+1);
+  records.sort((a,b)=>b.score-a.score||(b.examCount??0)-(a.examCount??0)||b.mixedFreq-a.mixedFreq||compareWord(a,b));
+  const ranked=Object.create(null),counts={P0:0,P1:0,P2:0,P3:0},n=records.length;
+  records.forEach((r,i)=>{
+    const fraction=i/n,level=fraction<.2?'P0':fraction<.5?'P1':fraction<.8?'P2':'P3';counts[level]++;
+    ranked[r.word]={rank:i+1,frequencyRank:r.frequencyRank,core:r.core,level,score:Math.round(r.score*100)/100,examCount:r.examCount,mixedFreq:r.mixedFreq,cefr:r.cefr||null,academic:r.academic,exam1Count:r.corpusCount,exam1Years:r.corpusYears,basis:r.basis};
   });
-  return { count: n, counts, records: ranked, source: 'exam-data/NETEMVocabulary（源工程自带数据）',
-    description: '真题次数是源数据的2005–2023年真题词表统计；混合词频来自四六级、考研及专四专八等试卷，非纯英语一词频。',
-    corpusYears: corpus ? corpus.availableYears : [],
-    method: corpus ? '若有2010–2025英语一正文：48%正文原形词频+19%出现年份覆盖+16%来源真题次数（缺失用混合词频）+12%混合词频+4%CEFR+1%学术词。正文仅逐词精确匹配，未执行完整词形还原。' : '有真题次数:62%真题样本+28%混合考试词频+7%CEFR+3%学术词标签；缺失时按混合考试词频排序。分层按20%/30%/30%/20%分位数，不是官方难度等级。' };
+  return {count:n,counts,records:ranked,source:'exam-data/NETEMVocabulary',description:'真题次数为2005–2023年考研真题词表统计；混合词频为多类考试词形还原统计，非英语一专属。',corpusYears:years,method:years.length?'v2: 英语一正文表面词形计数30%、年份覆盖15%、来源真题次数30%、混合词频12%、核心表8%、CEFR 4%、学术词2项中的1%。':'v2: 来源真题次数56%、混合词频26%、核心表10%、CEFR 6%、学术词2%；计数按全表最大值作对数归一化；缺失真题次数不贡献，未知CEFR取中性0.5。'};
 }
 module.exports = { generatePriority, parseVocabulary, readExamOneCorpus };
