@@ -75,3 +75,7 @@ The personal order supports balanced, CET6-first and English I-first goals. CET6
 ### Stratified vocabulary self-assessment (phase two)
 
 Each round samples up to 12 previously unassessed entries without review records, taking up to three from each quartile of the importance-ordered vocabulary, then filling from remaining entries. Learners recall before revealing definitions and report unknown, partial, or accurate recall. The local `diagnostic` field stores the responses. Accurate recall marks self-reported familiarity; weak responses remove that mark and take priority in personal study. Assessment never creates FSRS records or counts toward study totals. Normal study removes the entry from the pending weakness queue while preserving diagnostic history. Results are subjective and do not estimate total vocabulary size or sense-level mastery.
+
+### Shared content catalog and word books
+
+`app/js/content.js` owns access to bundled vocabulary and English I statistics and exposes word lookup, stable progress keys, book membership, and frequency lookup. The current NETEM book contains the existing vocabulary; the CET6 overlap book references the same entries tagged CET6 and is not a full CET6 list. No meanings or personal records are duplicated. `prefs.book` defaults to NETEM for legacy backups. New words, assessment and browsing are scoped to the selected book; the daily quota and due review queue remain global. Personal storage retains schema 3; no storage-engine migration has occurred.

@@ -1,25 +1,17 @@
 (() => {
 'use strict';
-const VOCAB = (window.WORD_WORLD_VOCAB || []).filter(w => w && typeof w.word === 'string' && w.word.trim());
-const vocabById = new Map(VOCAB.map(w => [w.word, w]));
-const vocabByLower = new Map(VOCAB.map(w => [w.word.toLowerCase(), w]));
-const wordKey = word => String(word||'')==='May'||String(word||'')==='March' ? String(word) : String(word||'').toLowerCase();
+const content=window.WordWorldContent;
+const VOCAB=content.allWords;
+const {wordKey,getWord,hasExam1,examRow}=content;
 const STORAGE_KEY = 'wordworld_state_v1';
 const todayKey = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const $ = id => document.getElementById(id);
-const getWord = id => vocabById.get(String(id||'')) || vocabByLower.get(String(id||'').toLowerCase());
 const escapeHTML = str => String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const rank = w => Number(w.priority?.rank ?? 99999);
 const frequency = w => Number(w.frequency ?? w.priority?.mixedFreq ?? 0);
 const priorityCompare = (a,b) => rank(a)-rank(b) || a.word.localeCompare(b.word,'en');
 const frequencyCompare = (a,b) => frequency(b)-frequency(a) || (Number(a.priority?.frequencyRank??99999)-Number(b.priority?.frequencyRank??99999)) || a.word.localeCompare(b.word,'en');
 // Keep source-frequency and English I statistics independent.
-const examAsset=window.WORD_WORLD_EXAM1;
-const examRows=new Map(Array.isArray(examAsset?.rows)?examAsset.rows.map(r=>[r[0],r]):[]);
-const hasExam1=window.WORD_WORLD_META?.sample!==true && examAsset?.schema===1 &&
- examAsset.years?.length===16 && examRows.size===VOCAB.length && VOCAB.length===5530 &&
- VOCAB.every(w=>examRows.has(w.word));
-const examRow=w=>hasExam1?examRows.get(w.word):null;
 const examCompare=(a,b)=>(examRow(a)?.[4]??Infinity)-(examRow(b)?.[4]??Infinity)||priorityCompare(a,b);
 function normalizeOrder(value){return value==='personal'||value==='frequency'||value==='exam1'&&hasExam1?value:'priority'}
 function normalizeFocus(value){return ['cet6','exam1','balanced'].includes(value)?value:'balanced'}
@@ -28,7 +20,7 @@ function diagnosticNeed(w){const result=diagnosticResult(w.word);return result==
 function pendingDiagnostic(w){return !progressOf(w.word)&&!isKnown(w.word)&&diagnosticNeed(w)>0}
 function diagnosticSample(){
  const bands=Array.from({length:4},()=>[]);
- const ordered=[...VOCAB].sort(priorityCompare);
+ const ordered=[...activeBook().words].sort(priorityCompare);
  ordered.forEach((w,i)=>{
   if(!progressOf(w.word)&&!diagnosticResult(w.word))bands[Math.min(3,Math.floor(i*4/ordered.length))].push(w);
  });
@@ -66,6 +58,7 @@ function normalizeState(obj){
  const result={...defaults(),...obj,prefs:{...defaults().prefs,...obj.prefs}};
  result.prefs.studyOrder=normalizeOrder(result.prefs.studyOrder);
  result.prefs.focus=normalizeFocus(result.prefs.focus);
+ result.prefs.book=content.normalizeBook(result.prefs.book);
  const known=Object.create(null);
  if(result.known&&typeof result.known==='object'&&!Array.isArray(result.known)){
   for(const w of VOCAB){const key=wordKey(w.word);if(Object.hasOwn(result.known,key)&&result.known[key]===true&&!Object.hasOwn(result.progress,key))known[key]=true}
@@ -103,19 +96,37 @@ function loadState(){
   } catch(err){console.warn('无法读取学习记录:',err)}
   return defaults();
 }
-function defaults(){return {schema:3,progress:{},saved:{},known:Object.create(null),diagnostic:Object.create(null),prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority',focus:'balanced'},daily:{},createdAt:new Date().toISOString()}}
+function defaults(){return {schema:3,progress:{},saved:{},known:Object.create(null),diagnostic:Object.create(null),prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority',focus:'balanced',book:'netem'},daily:{},createdAt:new Date().toISOString()}}
 function persist(){ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(err){toast('本地存储失败，请及时导出备份');return false} }
 function daily(){if(!state.daily[todayKey()])state.daily[todayKey()]={new:0,reviews:0,success:0};return state.daily[todayKey()]}
 function progressOf(word){const key=wordKey(word);return Object.hasOwn(state.progress,key)?state.progress[key]:null}
 function isKnown(word){return Object.hasOwn(state.known,wordKey(word))&&state.known[wordKey(word)]===true&&!progressOf(word)}
-function knownCount(){return VOCAB.filter(w=>isKnown(w.word)).length}
+function activeBook(){return content.book(state.prefs.book)}
+function knownCount(words=VOCAB){return words.filter(w=>isKnown(w.word)).length}
+function bookProgress(){
+ const words=activeBook().words;
+ return {total:words.length,learned:words.filter(w=>progressOf(w.word)).length,known:knownCount(words)};
+}
+function renderBookControls(){
+ const book=activeBook();
+ for(const id of ['today-book','library-book','settings-book'])$(id).value=book.id;
+ const progress=bookProgress();
+ $('home-book-name').textContent=book.title;
+ $('home-book-progress').textContent='本词书已学习 '+progress.learned+' 词 · 自认熟悉 '+progress.known+' 词';
+ $('records-book-progress').textContent=book.title+'：已学习 '+progress.learned+' / '+progress.total+' 词 · 自认熟悉 '+progress.known+' 词';
+}
+function setBook(value){
+ if(session)return;
+ state.prefs.book=content.normalizeBook(value);
+ persist();renderBookControls();renderHome();renderRecords();renderLibrary();
+}
 function dueWords(){const now=Date.now();return VOCAB.filter(w=>{const p=progressOf(w.word);return p && Date.parse(p.due)<=now}).sort((a,b)=>Date.parse(progressOf(a.word).due)-Date.parse(progressOf(b.word).due)||priorityCompare(a,b))}
-function pendingNew(){return VOCAB.filter(w=>!progressOf(w.word)&&!isKnown(w.word)).sort(state.prefs.studyOrder==='personal'?personalCompare:state.prefs.studyOrder==='exam1'?examCompare:state.prefs.studyOrder==='frequency'?frequencyCompare:priorityCompare)}
+function pendingNew(){return activeBook().words.filter(w=>!progressOf(w.word)&&!isKnown(w.word)).sort(state.prefs.studyOrder==='personal'?personalCompare:state.prefs.studyOrder==='exam1'?examCompare:state.prefs.studyOrder==='frequency'?frequencyCompare:priorityCompare)}
 function countStable(){return Object.values(state.progress).filter(p=>p && p.interval>=21*86_400_000).length}
 function activeLearned(){return VOCAB.filter(w=>progressOf(w.word)).length}
 function label(w){return w.priority?.level || '考研词'}
 function hintRank(w){return Number.isInteger(w.priority?.rank) ? `排序 #${w.priority.rank}` : '待评级'}
-function isSample(){return window.WORD_WORLD_META?.sample === true}
+function isSample(){return content.metadata.sample===true}
 function isSaved(word){return !!state.saved[wordKey(word)]}
 function toggleSave(word){const id=wordKey(word);if(state.saved[id])delete state.saved[id];else state.saved[id]=true;persist();updateSaveButtons();if(activePage==='library')renderLibrary();toast(state.saved[id]?'已加入收藏':'已取消收藏')}
 function updateSaveButtons(){if(session){$('study-bookmark').classList.toggle('is-saved',isSaved(session.wordIds[session.index]));$('study-bookmark').setAttribute('aria-pressed',isSaved(session.wordIds[session.index]))}if(currentDetail){$('detail-bookmark').classList.toggle('is-saved',isSaved(currentDetail));$('detail-bookmark').setAttribute('aria-pressed',isSaved(currentDetail))}}
@@ -134,6 +145,7 @@ function page(which,focus=false){
   window.scrollTo(0,0);$('app-frame').scrollTop=0;
 }
 function renderHome(){
+ renderBookControls();
   $('today-study-order').value=normalizeOrder(state.prefs.studyOrder);
   const due=dueWords().length;const done=daily();const goal=Number(state.prefs.goal)||20;
   const newAvailable=Math.max(0,goal-done.new),newTotal=Math.min(newAvailable,pendingNew().length);
@@ -149,17 +161,18 @@ function renderHome(){
   $('start-review').firstChild.textContent=mode==='review'?'开始今日复习 ':mode==='new'?'开始新词学习 ':'浏览全部词库 ';
   $('start-new').hidden=mode!=='review';
   $('home-new').innerHTML=`${newTotal} <small>词</small>`;
-  $('home-total').innerHTML=`${VOCAB.length} <small>词</small>`;
+  $('home-total').innerHTML=`${activeBook().words.length} <small>词</small>`;
   const percentage=Math.min(100,Math.round(done.new/Math.max(1,goal)*100));
   $('day-percent').textContent=percentage+'%';$('day-progress').style.width=percentage+'%';
   $('today-finished').textContent=`今日新学 ${done.new} 词 · 已复习 ${done.reviews} 次`;
   $('today-goal').textContent=`目标 ${goal} 词`;
- $('home-known').textContent=`已排除 ${knownCount()} 个自认熟悉词`;
- const assessed=Object.keys(state.diagnostic).length,weak=VOCAB.filter(pendingDiagnostic).length;
+ $('home-known').textContent=`本词书已排除 ${knownCount(activeBook().words)} 个自认熟悉词`;
+ const assessed=activeBook().words.filter(w=>diagnosticResult(w.word)).length,weak=activeBook().words.filter(pendingDiagnostic).length;
  $('home-diagnostic').textContent=`已诊断 ${assessed} 词 · ${weak} 个薄弱词待学`;
- $('start-diagnostic').disabled=!VOCAB.some(w=>!progressOf(w.word)&&!diagnosticResult(w.word));
+ $('start-diagnostic').disabled=!activeBook().words.some(w=>!progressOf(w.word)&&!diagnosticResult(w.word));
 }
 function renderRecords(){
+ renderBookControls();
  $('records-learned').textContent=activeLearned();$('records-due').textContent=dueWords().length;
  $('records-known').textContent=knownCount();$('records-diagnostic').textContent=Object.keys(state.diagnostic).length;$('records-weak').textContent=VOCAB.filter(pendingDiagnostic).length;$('study-focus').value=state.prefs.focus;
  $('records-strong').textContent=countStable();$('records-saved').textContent=Object.keys(state.saved).length;
@@ -169,7 +182,7 @@ function getLibraryResults(){
  const q=$('search-words').value.trim().toLowerCase();
  const active=$('level-filters').querySelector('.is-selected')?.dataset.level||'all';
  const order=$('library-order').value;
- let result=VOCAB.filter(w=>{
+ let result=activeBook().words.filter(w=>{
   if(active==='saved' && !isSaved(w.word))return false;
   if(active==='known' && !isKnown(w.word))return false;
   if(active==='weak' && !pendingDiagnostic(w))return false;
@@ -188,6 +201,7 @@ function getLibraryResults(){
  return result;
 }
 function renderLibrary(reset=true){
+ renderBookControls();
  if(reset)visibleCount=48;
  libraryResults=getLibraryResults();$('library-count').textContent=`${libraryResults.length} 词`;
  const list=$('word-list');list.replaceChildren();
@@ -201,8 +215,8 @@ function renderLibrary(reset=true){
  }
  list.appendChild(frag);
  $('load-more').hidden=visibleCount>=libraryResults.length;
- const meta=window.WORD_WORLD_META||{};
- $('dataset-disclaimer').textContent=isSample() ? '当前仅包含演示词汇，暂无可靠的词频排名。' : `已收录 ${VOCAB.length.toLocaleString('en-US')} 个真实词条。综合重要性是启发式学习排序；来源词频基于四六级、考研、专四专八混合语料，非纯英语一词频。词义由开放数据提供，尚未逐项人工核校。${hasExam1?' 英语一词频统计 2010–2025 年完形、阅读 A 与翻译正文，含保守词形推断；未检出不等于不考。':''}`; 
+ const meta=content.metadata;
+ $('dataset-disclaimer').textContent=isSample() ? '当前仅包含演示词汇，暂无可靠的词频排名。' : `当前词书：${activeBook().title}（${activeBook().words.length.toLocaleString('en-US')} 词）。${activeBook().complete?'':'仅为现有考研词库中带六级标签的重合词，并非完整六级词表。'} 统一词库收录 ${VOCAB.length.toLocaleString('en-US')} 个词条。综合重要性是启发式学习排序；来源词频基于四六级、考研、专四专八混合语料，非纯英语一词频。词义由开放数据提供，尚未逐项人工核校。${hasExam1?' 英语一词频统计 2010–2025 年完形、阅读 A 与翻译正文，含保守词形推断；未检出不等于不考。':''}`; 
 }
 function showDetail(word){
  const w=getWord(word);if(!w)return;
@@ -346,6 +360,13 @@ function setStudyOrder(value){
  persist();renderHome();
 }
 function bind(){
+ const available=content.listBooks();
+ for(const id of ['today-book','library-book','settings-book']){
+  const node=$(id);
+  const overlap=node.querySelector('option[value="cet6-overlap"]');
+  if(overlap)overlap.disabled=!available.find(b=>b.id==='cet6-overlap').count;
+  node.addEventListener('change',e=>setBook(e.target.value));
+ }
  for(const id of ['today-study-order','study-order','library-order']){
   const option=$(id).querySelector('option[value="exam1"]');if(option)option.disabled=!hasExam1;
  }

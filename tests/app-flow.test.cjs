@@ -40,7 +40,7 @@ function setup(initialState){
  const win={WORD_WORLD_VOCAB:[],WORD_WORLD_META:null,StudyScheduler:null,scrollTo(){},addEventListener(){},Capacitor:null};
  const ctx=vm.createContext({window:win,document:doc,localStorage,Date,Intl,console,navigator:{vibrate(){}},setTimeout:fn=>{fn();return 1},clearTimeout(){},Blob,URL,TextEncoder,SpeechSynthesisUtterance:class {},confirm:()=>true});
  const js=f=>vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),ctx,{filename:f});
- js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
+ js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/content.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
  els.get('library-order').value='priority';els.get('search-words').value='';
  js('app/js/app.js');
  return {els,doc,win,local,nav,chips};
@@ -359,4 +359,78 @@ test('older backups preserve their scheduled reviews and ignore invalid diagnost
  const next=JSON.parse(restored.local.get('wordworld_state_v1'));
  assert.equal(Object.keys(next.progress).length,1);
  assert.equal(Object.keys(next.diagnostic).length,1);
+});
+
+test('content catalog stores overlapping word entries only once and retains legacy progress IDs',()=>{
+ const {win}=setup();
+ const catalog=win.WordWorldContent;
+ assert.equal(catalog.allWords.length,win.WORD_WORLD_VOCAB.length);
+ assert.equal(catalog.book('netem').words.length,catalog.allWords.length);
+ const overlap=catalog.book('cet6-overlap').words;
+ if(catalog.normalizeBook('cet6-overlap')==='cet6-overlap'){
+  assert.ok(overlap.length<catalog.allWords.length);
+  assert.ok(overlap.every(w=>w.tags.includes('六级')&&catalog.getWord(w.word)===w));
+  assert.equal(catalog.book('cet6-overlap').complete,false);
+ }
+ assert.equal(catalog.wordKey('May'),'May');
+ assert.equal(catalog.wordKey('may'),'may');
+ assert.equal(catalog.normalizeBook('uninstalled'),'netem');
+});
+test('book switching changes new-word, browse and diagnostic scope and persists',()=>{
+ const {els,win,local,nav}=setup();
+ const catalog=win.WordWorldContent;
+ if(catalog.normalizeBook('cet6-overlap')!=='cet6-overlap')return;
+ const overlap=catalog.book('cet6-overlap').words;
+ els.get('today-book').value='cet6-overlap';
+ els.get('today-book').dispatch('change');
+ assert.match(els.get('home-total').innerHTML,new RegExp(String(overlap.length)));
+ assert.equal(els.get('settings-book').value,'cet6-overlap');
+ nav[1].click();
+ assert.equal(els.get('library-count').textContent,overlap.length+' 词');
+ assert.equal(els.get('library-book').value,'cet6-overlap');
+ nav[0].click();
+ els.get('start-diagnostic').click();
+ assert.ok(catalog.getWord(els.get('study-word').textContent).tags.includes('六级'));
+ els.get('leave-study').click();
+ els.get('start-review').click();
+ assert.ok(catalog.getWord(els.get('study-word').textContent).tags.includes('六级'));
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ const restored=setup(state);
+ assert.equal(restored.els.get('today-book').value,'cet6-overlap');
+});
+test('shared learning state survives book switching and global reviews include other books',()=>{
+ const {els,win,local,nav}=setup();
+ const catalog=win.WordWorldContent;
+ if(catalog.normalizeBook('cet6-overlap')!=='cet6-overlap')return;
+ const word=catalog.book('cet6-overlap').words[0].word;
+ const other=catalog.allWords.find(w=>!w.tags?.includes('六级')).word;
+ nav[1].click();
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ els.get('detail-start').click();
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ els.get('finish-home').click();
+ els.get('today-book').value='cet6-overlap';
+ els.get('today-book').dispatch('change');
+ assert.match(els.get('home-book-progress').textContent,/已学习 1 词/);
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(state.progress).length,1);
+ // Use a genuine review record template, but set the nonmember's due date in the past.
+ state.progress[catalog.wordKey(other)]={...state.progress[catalog.wordKey(word)],due:'2000-01-01T00:00:00.000Z'};
+ const restored=setup(state);
+ restored.els.get('start-review').click();
+ assert.equal(restored.els.get('study-word').textContent,other);
+ assert.equal(restored.els.get('study-mode-label').textContent,'到期复习');
+});
+test('old backups default to the original book without changing study state',()=>{
+ const {els,local}=setup();
+ els.get('start-review').click();
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ delete state.prefs.book;
+ const restored=setup(state);
+ assert.equal(restored.els.get('today-book').value,'netem');
+ restored.nav[2].click();
+ assert.equal(restored.els.get('records-learned').textContent,1);
 });
