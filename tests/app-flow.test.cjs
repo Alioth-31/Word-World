@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname,'..');
-function setup(){
+function setup(initialState){
  const html=fs.readFileSync(path.join(root,'app/index.html'),'utf8');
  const keys=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);
  class ClassList{constructor(xs=[]){this.set=new Set(xs)}add(s){this.set.add(s)}remove(s){this.set.delete(s)}contains(s){return this.set.has(s)}toggle(s,v){if(v===undefined)v=!this.contains(s);if(v)this.add(s);else this.remove(s);return v}}
@@ -25,9 +25,9 @@ function setup(){
  }
  const els=new Map(keys.map(k=>[k,new El(k)]));
  const nav=['today','library','records'].map(page=>{const e=new El();e.dataset.page=page;return e});
- const chips=['all','P0','P1','P2','P3','cet6','saved'].map(level=>{const e=new El();e.dataset.level=level;if(level==='all')e.classList.add('is-selected');return e});
+ const chips=['all','P0','P1','P2','P3','cet6','saved','pending','known'].map(level=>{const e=new El();e.dataset.level=level;if(level==='all')e.classList.add('is-selected');return e});
  for(const k of ['study-shell','detail-shell','finish-shell','rating-buttons','reveal-content'])els.get(k).classList.add('is-hidden');
- const local=new Map();
+ const local=new Map(initialState?[['wordworld_state_v1',JSON.stringify(initialState)]]:[]);
  const doc={
    getElementById:k=>{assert.ok(els.has(k),'missing ID in HTML: '+k);return els.get(k)},
    querySelectorAll:s=>s==='.nav-link'?nav:s==='.filter-chip'?chips:[],
@@ -210,4 +210,68 @@ test('English I order controls the library and next new word independently',()=>
  assert.equal(JSON.parse(local.get('wordworld_state_v1')).prefs.studyOrder,'exam1');
  els.get('start-review').click();
  assert.equal(els.get('study-word').textContent,top[0]);
+});
+
+test('known words are reversible, excluded from new study, and distinct from learned words',()=>{
+ const {els,win,local,nav,chips}=setup();
+ const word=win.WORD_WORLD_VOCAB[0].word;
+ nav[1].click();
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ els.get('detail-known').click();
+ let state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.known[word],true);
+ assert.equal(Object.keys(state.progress).length,0);
+ els.get('close-detail').click();
+ const known=chips.find(c=>c.dataset.level==='known');
+ els.get('level-filters').dispatch('click',{target:known});
+ assert.equal(els.get('library-count').textContent,'1 词');
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ els.get('detail-known').click();
+ assert.equal(els.get('library-count').textContent,'0 词');
+ state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(state.known).length,0);
+});
+test('skipping a familiar new word replaces it without counting it as learned or reviewed',()=>{
+ const {els,win,local}=setup();
+ els.get('start-review').click();
+ const first=els.get('study-word').textContent;
+ els.get('reveal-answer').click();
+ assert.equal(els.get('study-known').hidden,false);
+ els.get('study-known').click();
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.known[first],true);
+ assert.equal(Object.keys(state.progress).length,0);
+ assert.equal(Object.values(state.daily)[0].new,0);
+ assert.equal(Object.values(state.daily)[0].reviews,0);
+ assert.ok(els.get('study-word').textContent!==first);
+ const restored=setup(state);
+ restored.els.get('start-review').click();
+ assert.ok(restored.els.get('study-word').textContent!==first);
+});
+test('CET6 focus prioritizes overlapping words and persists separately from review state',()=>{
+ const {els,win,local}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ els.get('study-focus').value='cet6';
+ els.get('study-focus').dispatch('change');
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.prefs.focus,'cet6');
+ assert.equal(state.prefs.studyOrder,'personal');
+ els.get('start-review').click();
+ const word=els.get('study-word').textContent;
+ assert.ok(win.WORD_WORLD_VOCAB.find(w=>w.word===word).tags.includes('六级'));
+});
+test('old records load without known status and existing learned words cannot be excluded',()=>{
+ const {els,local}=setup();
+ els.get('start-review').click();
+ const word=els.get('study-word').textContent;
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ delete state.known;delete state.prefs.focus;
+ const restored=setup(state);
+ restored.nav[1].click();
+ restored.els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ assert.equal(restored.els.get('detail-known').hidden,true);
+ restored.els.get('detail-known').click();
+ assert.equal(restored.els.get('detail-known').hidden,true);
 });

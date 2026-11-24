@@ -206,3 +206,12 @@ body { background:#e9e5dc; }
 
 /* Learning-order control in the daily view. */
 .today-order-row{margin-top:16px;padding:9px 0;border-bottom:1px solid #ddd8cf}.today-order-row select{max-width:70%;text-align:right}
+
+/* Personal learning controls reuse the existing neutral palette. */
+.personal-note {font-size:12px;line-height:1.6;margin:8px 0;color:inherit;}
+.personal-skip {display:block;width:100%;margin-top:9px;padding:9px 8px;border:0;background:transparent;color:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;}
+.personal-skip[hidden],#detail-known[hidden] {display:none;}
+.detail-personal-note {font-size:12px;line-height:1.6;margin:0;padding:8px 23px;color:#69675e;background:#faf8f2;}
+.detail-bottom {display:flex;gap:8px;align-items:center;}
+.detail-bottom button {flex:1;min-width:0;}
+#detail-known {font-size:13px;text-decoration:underline;text-underline-offset:3px;}

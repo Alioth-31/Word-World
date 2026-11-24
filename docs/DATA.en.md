@@ -67,3 +67,7 @@ Before distributing APKs that contain third-party data, check the actual bundled
 ### English I frequency in the app
 
 `npm run data:exam1:app` projects the separate report into the offline asset `app/data/exam1.js` with word IDs, exact and inferred counts, observed years, and estimated ranks. Library and new-word ordering support this separate ranking; unobserved entries follow observed entries, ordered by existing importance. Mixed-source frequency, importance and review scheduling remain unchanged. The option is disabled if the resource is absent or does not match the vocabulary IDs, and study falls back to importance. The demo vocabulary does not use the full ranking.
+
+### Personalized study (phase one)
+
+The personal order supports balanced, CET6-first and English I-first goals. CET6 overlap is prioritized without excluding other entries; English I frequency reorders within 100-position importance bands. This is an interpretable heuristic, not a validated learning-effectiveness model. Self-reported familiar words are stored separately in the local `known` backup field, excluded from new-word plans, and recoverable from the library. They do not count as learned or stable; existing review records cannot be skipped through this feature. Rating a previously excluded word in direct study returns it to normal scheduling. Legacy backups remain compatible.
