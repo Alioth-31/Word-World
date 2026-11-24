@@ -63,3 +63,7 @@ An exploratory audit of inferred matches in 2010, 2015, 2020 and 2025 found 1,73
 Before distributing APKs that contain third-party data, check the actual bundled materials and comply with attribution, non-commercial, ShareAlike, and original-rightsholder requirements. This project's [MIT License](../LICENSE) covers only material it has the right to license. A brief notice is also shipped as `app/THIRD_PARTY.txt`.
 
 [← Back to README](../README.en.md)
+
+### English I frequency in the app
+
+`npm run data:exam1:app` projects the separate report into the offline asset `app/data/exam1.js` with word IDs, exact and inferred counts, observed years, and estimated ranks. Library and new-word ordering support this separate ranking; unobserved entries follow observed entries, ordered by existing importance. Mixed-source frequency, importance and review scheduling remain unchanged. The option is disabled if the resource is absent or does not match the vocabulary IDs, and study falls back to importance. The demo vocabulary does not use the full ranking.

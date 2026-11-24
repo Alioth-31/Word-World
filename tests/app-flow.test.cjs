@@ -40,7 +40,7 @@ function setup(){
  const win={WORD_WORLD_VOCAB:[],WORD_WORLD_META:null,StudyScheduler:null,scrollTo(){},addEventListener(){},Capacitor:null};
  const ctx=vm.createContext({window:win,document:doc,localStorage,Date,Intl,console,navigator:{vibrate(){}},setTimeout:fn=>{fn();return 1},clearTimeout(){},Blob,URL,TextEncoder,SpeechSynthesisUtterance:class {},confirm:()=>true});
  const js=f=>vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),ctx,{filename:f});
- js('app/data/vocabulary.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
+ js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
  els.get('library-order').value='priority';els.get('search-words').value='';
  js('app/js/app.js');
  return {els,doc,win,local,nav,chips};
@@ -192,4 +192,22 @@ test('dictionary details distinguish importance rank from source frequency rank'
  els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word:'the'}})}});
  const source=win.WORD_WORLD_VOCAB.find(w=>w.word==='the');
  assert.ok(els.get('detail-priority').textContent.includes(`重要性 #${source.priority.rank} · 来源词频 #${source.priority.frequencyRank}（${source.frequency.toLocaleString('en-US')} 次）`));
+});
+
+test('English I order controls the library and next new word independently',()=>{
+ const {els,win,local}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ const rows=win.WORD_WORLD_EXAM1.rows, top=rows.find(r=>r[4]===1);
+ assert.ok(top);
+ els.get('library-order').value='exam1';
+ els.get('library-order').dispatch('change');
+ const row=els.get('word-list').children[0].children[0];
+ assert.equal(row.dataset.word,top[0]);
+ assert.match(row.innerHTML,/英语一估计词频 #1/);
+ els.get('today-study-order').value='exam1';
+ els.get('today-study-order').dispatch('change');
+ assert.equal(els.get('study-order').value,'exam1');
+ assert.equal(JSON.parse(local.get('wordworld_state_v1')).prefs.studyOrder,'exam1');
+ els.get('start-review').click();
+ assert.equal(els.get('study-word').textContent,top[0]);
 });

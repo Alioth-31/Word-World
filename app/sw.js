@@ -1,6 +1,6 @@
 /* Network-first for app-packaged localhost resources. Updated APK assets replace old SW cache. */
-const CACHE = 'wordworld-v2-full-vocab';
-const ASSETS = ['./', './index.html', './style.css', './data/vocabulary.js', './js/app.js', './js/srs-fallback.js', './js/fsrs-engine.js', './assets/icon.svg', './manifest.webmanifest'];
+const CACHE = 'wordworld-v3-exam1';
+const ASSETS = ['./', './index.html', './style.css', './data/vocabulary.js', './data/exam1.js', './js/app.js', './js/srs-fallback.js', './js/fsrs-engine.js', './assets/icon.svg', './manifest.webmanifest'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch', event => {

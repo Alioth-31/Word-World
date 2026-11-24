@@ -15,8 +15,9 @@
     "android:assets": "capacitor-assets generate --android --assetPath assets --iconBackgroundColor \"#14272e\" --splashBackgroundColor \"#14272e\"",
     "preview": "node scripts/build-preview.cjs",
     "build:refresh-data": "npm run data && npm run build",
-    "data:exam1": "node scripts/build-exam1-frequency.cjs",
-    "eval:exam1": "node scripts/run-exam1-ranking-eval.cjs"
+    "data:exam1": "node scripts/build-exam1-frequency.cjs && npm run data:exam1:app",
+    "eval:exam1": "node scripts/run-exam1-ranking-eval.cjs",
+    "data:exam1:app": "node scripts/build-exam1-app-data.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",
