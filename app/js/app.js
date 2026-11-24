@@ -12,7 +12,7 @@ const escapeHTML = str => String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
 const rank = w => Number(w.priority?.rank ?? 99999);
 const frequency = w => Number(w.frequency ?? w.priority?.mixedFreq ?? 0);
 const priorityCompare = (a,b) => rank(a)-rank(b) || a.word.localeCompare(b.word,'en');
-const frequencyCompare = (a,b) => frequency(b)-frequency(a) || priorityCompare(a,b);
+const frequencyCompare = (a,b) => frequency(b)-frequency(a) || (Number(a.priority?.frequencyRank??99999)-Number(b.priority?.frequencyRank??99999)) || a.word.localeCompare(b.word,'en');
 const todayDate = todayKey();
 let state = loadState();
 let activePage = 'today';
@@ -92,7 +92,7 @@ function getLibraryResults(){
   if(active==='saved' && !isSaved(w.word))return false;
   if(active==='cet6' && !w.tags?.includes('六级'))return false;
   if(active!=='all' && !['saved','cet6'].includes(active) && label(w)!==active)return false;
-  if(q && !w.word.toLowerCase().includes(q) && !String(w.meaning||'').toLowerCase().includes(q))return false;
+  if(q && !w.word.toLowerCase().includes(q) && !String(w.meaning||'').toLowerCase().includes(q) && !String(w.extraMeaning||'').toLowerCase().includes(q))return false;
   return true;
  });
  if(order==='frequency')result.sort(frequencyCompare);
@@ -123,7 +123,7 @@ function showDetail(word){
  currentDetail=w.word;const shell=$('detail-shell');shell.classList.remove('is-hidden');shell.setAttribute('aria-hidden','false');
  $('detail-word').textContent=w.word;$('detail-phonetic').textContent=w.phonetic||'点击发音';
  $('detail-priority').textContent=`${label(w)} · 重要性 #${w.priority?.rank??'—'} · 来源词频 #${w.priority?.frequencyRank??'—'}（${frequency(w).toLocaleString('en-US')} 次）${w.tags?.includes('六级')?' · 六级重合':''}${w.priority?.core?' · 核心词表':''}`;
- $('detail-meaning').textContent=w.meaning||'暂无词义';$('detail-extra').textContent=w.extraMeaning||'';
+ $('detail-meaning').textContent=w.meaning||'暂无词义';$('detail-extra').textContent=w.extraMeaning?`补充义项：${w.extraMeaning}`:'';
  if(w.example){$('detail-context').hidden=false;$('detail-example').textContent=w.example;$('detail-example-zh').textContent=w.exampleZh||'';
   $('detail-context-label').textContent=w.exampleType==='exam'?'真题语境 / EXAM CONTEXT':'例句 / CONTEXT';
   $('detail-example-source').textContent=w.exampleSource||'例句来源待核对';
@@ -164,7 +164,7 @@ function reveal(){if(!session||session.revealed)return;session.revealed=true;
  const w=getWord(session.wordIds[session.index]);if(!w)return;
  haptic();$('study-prompt').classList.add('is-hidden');$('reveal-content').classList.remove('is-hidden');
  $('reveal-answer').classList.add('is-hidden');$('rating-buttons').classList.remove('is-hidden');
- $('study-meaning').textContent=w.meaning||'暂无释义';$('study-extra-meaning').textContent=w.extraMeaning||'';
+ $('study-meaning').textContent=w.meaning||'暂无释义';$('study-extra-meaning').textContent=w.extraMeaning?`补充义项：${w.extraMeaning}`:'';
  $('study-ranking').textContent=isSample()?'示例词汇':`重要性 #${w.priority?.rank??'—'} · 来源词频 #${w.priority?.frequencyRank??'—'}（${frequency(w).toLocaleString('en-US')} 次）`;
  $('context-block').hidden=!w.example;
  if(w.example){$('context-caption').textContent=w.exampleType==='exam'?'EXAM CONTEXT / 真题语境':'CONTEXT / 语境例句';$('study-example').textContent=w.example;

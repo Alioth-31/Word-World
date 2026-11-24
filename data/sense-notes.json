@@ -1,0 +1,50 @@
+{
+  "address": {
+    "meaning": "v. 处理、着手解决（address a problem）；向……讲话；n. 地址、演说",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/address"
+  },
+  "account": {
+    "meaning": "n. 叙述、说明、账户；account for：解释……的原因；占（一定比例）；take into account：考虑到",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/account"
+  },
+  "benefit": {
+    "meaning": "v. 使受益；benefit from：从……中获益；n. 益处、福利",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/benefit"
+  },
+  "fine": {
+    "meaning": "adj. 精细的、细微的、优良的；n. 罚款；v. 处以罚款",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/fine"
+  },
+  "claim": {
+    "meaning": "v. 声称、主张；要求获得；n. 主张、索赔要求",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/claim"
+  },
+  "charge": {
+    "meaning": "n. 费用、指控、电荷；v. 收费、指控、充电；in charge of：负责",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/charge"
+  },
+  "view": {
+    "meaning": "n. 观点、看法、景色；v. 看待、观察；view A as B：把A视为B",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/view"
+  },
+  "subject": {
+    "meaning": "n. 主题、学科、受试者；adj. 受……制约的；be subject to：可能遭受、受……约束；v. 使经受",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/subject"
+  },
+  "object": {
+    "meaning": "n. 物体、目标；v. 反对（object to doing sth.）",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/object"
+  },
+  "rate": {
+    "meaning": "n. 比率、速度、费率；v. 评价、评定等级",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/rate"
+  },
+  "issue": {
+    "meaning": "n. 议题、问题、期刊的一期；v. 发布、发行",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/issue"
+  },
+  "conduct": {
+    "meaning": "v. 实施、主持（conduct research）；引导、传导；n. 行为、举止",
+    "reference": "https://dictionary.cambridge.org/dictionary/english/conduct"
+  }
+}

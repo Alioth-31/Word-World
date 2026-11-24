@@ -21,6 +21,16 @@ The `sources/` directory is Git-ignored. `app/data/vocabulary.js` **already cont
 
 **The two rankings differ**: source frequency counts come from mixed exam corpora (including CET, postgraduate and TEM examinations), **not English I alone**. Composite importance is a separate **unvalidated heuristic** incorporating source-provided exam counts, mixed frequency, CEFR and core-set membership. Exact token matches are not lemmatized matches and cannot establish which sense of a polysemous word occurs in a passage. With insufficient corpus data, scoring falls back to source fields and is **not** an independently verified English I frequency list.
 
+## Ranking version 2
+
+The bundled dictionary preserves source meanings and counts. The upstream [data dictionary](https://github.com/exam-data/NETEMVocabulary/blob/master/docs/data-dictionary.md) distinguishes mixed-exam lemmatized frequency from the 2005–2023 postgraduate exam word-list count. The bundled data has 2,443 positive exam counts, 3,087 zeros and 1,159 unknown CEFR labels. A source count of zero does not establish absence from English I papers.
+
+The bundled importance score uses 56% source exam count, 26% mixed frequency, 10% core-list membership, 6% CEFR difficulty, and 2% academic-word membership. Counts are log-normalized by the maximum over the vocabulary. Missing exam counts remain null and contribute zero without redistributing weight; unknown CEFR takes a neutral 0.5. Frequency ties are ordered alphabetically, independently of importance. Importance tiers use 20/30/30/20 percent rank bands. This is a learning heuristic, not a validated exam performance model.
+
+When at least 12 valid years of English I passages are explicitly added, the formula uses surface-form count (30%), year coverage (15%), source exam count (30%), mixed frequency (12%), core membership (8%), CEFR (4%) and academic membership (1%). The bundled dictionary does not use this optional corpus.
+
+[Supplementary sense notes](../data/sense-notes.json) are original Chinese learning notes informed by corresponding Cambridge Dictionary entries, not copied English definitions or exam quotations. Source meanings remain intact; the builder merges the notes during refresh.
+
 ## Third-party sources
 
 | Source | Use | Stated license and limitations |

@@ -64,3 +64,19 @@ test('core list contributes to importance, not raw word frequency',()=>{
  assert.equal(ranked.records.syntax.core,true);
  assert.equal(ranked.records.context.frequencyRank,1);
 });
+
+test('zero and missing exam counts remain distinct, without redistributing their weights',()=>{
+ const rows=[{word:'zero',frequency:100,examCount:0},{word:'missing',frequency:100},{word:'positive',frequency:100,examCount:10}];
+ const {records}=generatePriority(rows);
+ assert.equal(records.zero.examCount,0);
+ assert.equal(records.missing.examCount,null);
+ assert.equal(records.zero.score,records.missing.score);
+ assert.ok(records.positive.score>records.zero.score);
+});
+test('core membership preserves case-distinct words and frequency ties stay independent',()=>{
+ const {records}=generatePriority([{word:'May',frequency:10},{word:'may',frequency:10}],null,new Set(['May']));
+ assert.equal(records.May.core,true);
+ assert.equal(records.may.core,false);
+ assert.ok(records.May.rank<records.may.rank);
+ assert.equal(records.may.frequencyRank,1);
+});

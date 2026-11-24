@@ -31,6 +31,8 @@ async function main(){
  await getFile(examUrl,vocabularyPath);
  const raw=JSON.parse(fs.readFileSync(vocabularyPath,'utf8'));
  const rows=parseVocabulary(raw);
+ const notesFile=path.join(root,'data','sense-notes.json');
+ const senseNotes=fs.existsSync(notesFile)?JSON.parse(fs.readFileSync(notesFile,'utf8')):{};
  const demoFile=path.join(root,'data','demo-vocabulary.tsv');
  const demoExamples=new Map();
  if(fs.existsSync(demoFile)){
@@ -40,11 +42,11 @@ async function main(){
    }
  }
  let coreWords=new Set();
- try {await getFile(coreUrl,corePath);coreWords=new Set(parseVocabulary(JSON.parse(fs.readFileSync(corePath,'utf8'))).map(x=>String(x['单词']||x.word||'').trim().toLowerCase()));}
+ try {await getFile(coreUrl,corePath);coreWords=new Set(parseVocabulary(JSON.parse(fs.readFileSync(corePath,'utf8'))).map(x=>String(x['单词']||x.word||'').trim()));}
  catch(e){console.warn('核心词表不可用，仅按完整词表评分：',e.message)}
  let cetWords=new Map();
  try {
-   if(!withoutCorpus || fs.existsSync(cetPath))await getFile(cetUrl,cetPath);
+   await getFile(cetUrl,cetPath);
    if(fs.existsSync(cetPath)) {
      const data=JSON.parse(fs.readFileSync(cetPath,'utf8'));
      cetWords=new Map(parseVocabulary(data).filter(x=>x['单词']||x.word).map(x=>[String(x['单词']||x.word).toLowerCase(),x]));
@@ -64,29 +66,29 @@ async function main(){
    }catch(e){console.warn('真题数据下载不可用，跳过剩余远程下载:',year,e.message);remoteFailed=true}
   }
   if(available>=12)corpus=readExamOneCorpus(corpusDir);
-  else console.warn('真题语料未满 12 年，不作为评分主依据，使用源项目真题次数字段。');
+  if(!corpus||corpus.availableYears.length<12){corpus=null;console.warn('有效真题语料未满 12 年，使用源项目真题次数字段。');}
  }
  const ranked=generatePriority(raw,corpus,coreWords);
  const map=new Map();
  for(const item of rows){
   const word=String(item['单词']||item.word||'').trim();if(!word)continue;
-  const key=word.toLowerCase(),p=ranked.records[word]||ranked.records[key];
+  const key=word.toLowerCase(),p=ranked.records[word];
   const meaning=String(item['释义']||item.definition||'').trim();
   const cet=cetWords.get(key);
   const six=cet?.['六级'];
   const isSix = six!==undefined && six!==null && !['', '0', 'false', '否', '无', 'no'].includes(String(six).trim().toLowerCase());
   const tags=['考研',...(cet?[isSix?'六级':'四级']:[])];
   const base={word,meaning,phonetic:String(item['英式音标']||item['音标']||item.phonetic||'').trim(),tags,...(demoExamples.get(key)||{}),
-    category:String(item['分类名称']||'').trim(),frequency:Number(item['词频'])||0,
-    priority:{level:p?.level||'P3',rank:p?.rank??null,frequencyRank:p?.frequencyRank??null,core:coreWords.has(key),score:p?.score??0,examCount:p?.examCount??null,exam1Count:p?.exam1Count??null,exam1Years:p?.exam1Years??null,basis:p?.basis||'原始词库'} }; 
+    category:String(item['分类名称']||'').trim(),frequency:p.mixedFreq,
+    priority:p,...(Object.hasOwn(senseNotes,word)?{extraMeaning:senseNotes[word].meaning}:{}) }; 
   if(!map.has(word))map.set(word,base);
   else {const existing=map.get(word);if(meaning&&!existing.meaning.includes(meaning))existing.extraMeaning=[existing.extraMeaning,meaning].filter(Boolean).join('；');
    if((p?.rank||Infinity)<(existing.priority.rank||Infinity))existing.priority=base.priority;
   }
  }
  const items=[...map.values()].sort((a,b)=>(a.priority.rank||99999)-(b.priority.rank||99999)||a.word.localeCompare(b.word));
- if(items.length<5000||items.length>7000)throw new Error('考研词库规模异常：'+items.length);
- const meta={sample:false,count:items.length,cetMatches:items.filter(x=>x.tags.length>1).length,source:'exam-data/NETEMVocabulary + exam-data/CETVocabulary (full + core; corpus counts optional)',rankMethod:ranked.method,corpusYears:ranked.corpusYears,license:'CC BY-NC-SA 4.0; 非商业学习用途',createdAt:new Date().toISOString()};
+ if(items.length!==5530)throw new Error('考研词库规模异常：'+items.length);
+ const meta={sample:false,count:items.length,coreCount:items.filter(w=>w.priority.core).length,rankVersion:2,senseNotes:items.filter(w=>Object.hasOwn(senseNotes,w.word)).length,cetMatches:items.filter(x=>x.tags.length>1).length,source:'exam-data/NETEMVocabulary + exam-data/CETVocabulary (full + core; corpus counts optional)',rankMethod:ranked.method,corpusYears:ranked.corpusYears,license:'CC BY-NC-SA 4.0; 非商业学习用途',createdAt:new Date().toISOString()};
  fs.mkdirSync(path.dirname(output),{recursive:true});
  fs.writeFileSync(output,'/* 考研词汇数据：CC BY-NC-SA 4.0；释义未经逐项人工校核。 */\nwindow.WORD_WORLD_META = '+JSON.stringify(meta)+';\nwindow.WORD_WORLD_VOCAB = '+JSON.stringify(items)+';\n','utf8');
  console.log('已构建词库：',items.length,'词；真题覆盖年份：',ranked.corpusYears.join(',')||'未导入');
