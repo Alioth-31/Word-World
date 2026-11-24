@@ -23,7 +23,33 @@ const examRow=w=>hasExam1?examRows.get(w.word):null;
 const examCompare=(a,b)=>(examRow(a)?.[4]??Infinity)-(examRow(b)?.[4]??Infinity)||priorityCompare(a,b);
 function normalizeOrder(value){return value==='personal'||value==='frequency'||value==='exam1'&&hasExam1?value:'priority'}
 function normalizeFocus(value){return ['cet6','exam1','balanced'].includes(value)?value:'balanced'}
+function diagnosticResult(word){const key=wordKey(word);return Object.hasOwn(state.diagnostic,key)?state.diagnostic[key]:null}
+function diagnosticNeed(w){const result=diagnosticResult(w.word);return result==='unknown'?2:result==='partial'?1:0}
+function pendingDiagnostic(w){return !progressOf(w.word)&&!isKnown(w.word)&&diagnosticNeed(w)>0}
+function diagnosticSample(){
+ const bands=Array.from({length:4},()=>[]);
+ const ordered=[...VOCAB].sort(priorityCompare);
+ ordered.forEach((w,i)=>{
+  if(!progressOf(w.word)&&!diagnosticResult(w.word))bands[Math.min(3,Math.floor(i*4/ordered.length))].push(w);
+ });
+ const selected=[],used=new Set();
+ for(const band of bands){
+  const count=Math.min(3,band.length);
+  for(let i=0;i<count;i++){
+   const w=band[Math.floor((i+.5)*band.length/count)];
+   selected.push(w);used.add(w.word);
+  }
+ }
+ // Fill any short strata with still-unassessed entries; never repeat a word within a round.
+ for(const band of bands)for(const w of band){
+  if(selected.length===12)break;
+  if(!used.has(w.word)){selected.push(w);used.add(w.word)}
+ }
+ return selected;
+}
 function personalCompare(a,b){
+ const need=Number(pendingDiagnostic(b))*diagnosticNeed(b)-Number(pendingDiagnostic(a))*diagnosticNeed(a);
+ if(need)return need;
  const focus=state.prefs.focus;
  if(focus==='cet6'){
   const overlap=Number(!!b.tags?.includes('六级'))-Number(!!a.tags?.includes('六级'));
@@ -45,6 +71,11 @@ function normalizeState(obj){
   for(const w of VOCAB){const key=wordKey(w.word);if(Object.hasOwn(result.known,key)&&result.known[key]===true&&!Object.hasOwn(result.progress,key))known[key]=true}
  }
  result.known=known;
+ const diagnostic=Object.create(null);
+ if(result.diagnostic&&typeof result.diagnostic==='object'&&!Array.isArray(result.diagnostic)){
+  for(const w of VOCAB){const key=wordKey(w.word);if(Object.hasOwn(result.diagnostic,key)&&['unknown','partial','accurate'].includes(result.diagnostic[key]))diagnostic[key]=result.diagnostic[key]}
+ }
+ result.diagnostic=diagnostic;
  return result;
 }
 function examSummary(w){
@@ -72,7 +103,7 @@ function loadState(){
   } catch(err){console.warn('无法读取学习记录:',err)}
   return defaults();
 }
-function defaults(){return {schema:3,progress:{},saved:{},known:Object.create(null),prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority',focus:'balanced'},daily:{},createdAt:new Date().toISOString()}}
+function defaults(){return {schema:3,progress:{},saved:{},known:Object.create(null),diagnostic:Object.create(null),prefs:{goal:20,theme:'night',reduceMotion:false,studyOrder:'priority',focus:'balanced'},daily:{},createdAt:new Date().toISOString()}}
 function persist(){ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));return true}catch(err){toast('本地存储失败，请及时导出备份');return false} }
 function daily(){if(!state.daily[todayKey()])state.daily[todayKey()]={new:0,reviews:0,success:0};return state.daily[todayKey()]}
 function progressOf(word){const key=wordKey(word);return Object.hasOwn(state.progress,key)?state.progress[key]:null}
@@ -124,10 +155,13 @@ function renderHome(){
   $('today-finished').textContent=`今日新学 ${done.new} 词 · 已复习 ${done.reviews} 次`;
   $('today-goal').textContent=`目标 ${goal} 词`;
  $('home-known').textContent=`已排除 ${knownCount()} 个自认熟悉词`;
+ const assessed=Object.keys(state.diagnostic).length,weak=VOCAB.filter(pendingDiagnostic).length;
+ $('home-diagnostic').textContent=`已诊断 ${assessed} 词 · ${weak} 个薄弱词待学`;
+ $('start-diagnostic').disabled=!VOCAB.some(w=>!progressOf(w.word)&&!diagnosticResult(w.word));
 }
 function renderRecords(){
  $('records-learned').textContent=activeLearned();$('records-due').textContent=dueWords().length;
- $('records-known').textContent=knownCount();$('study-focus').value=state.prefs.focus;
+ $('records-known').textContent=knownCount();$('records-diagnostic').textContent=Object.keys(state.diagnostic).length;$('records-weak').textContent=VOCAB.filter(pendingDiagnostic).length;$('study-focus').value=state.prefs.focus;
  $('records-strong').textContent=countStable();$('records-saved').textContent=Object.keys(state.saved).length;
  $('new-goal').value=String(state.prefs.goal);$('study-order').value=state.prefs.studyOrder||'priority';$('study-theme').value=state.prefs.theme;$('reduce-motion').checked=!!state.prefs.reduceMotion;
 }
@@ -138,9 +172,10 @@ function getLibraryResults(){
  let result=VOCAB.filter(w=>{
   if(active==='saved' && !isSaved(w.word))return false;
   if(active==='known' && !isKnown(w.word))return false;
+  if(active==='weak' && !pendingDiagnostic(w))return false;
   if(active==='pending' && (isKnown(w.word)||progressOf(w.word)))return false;
   if(active==='cet6' && !w.tags?.includes('六级'))return false;
-  if(active!=='all' && !['saved','cet6','known','pending'].includes(active) && label(w)!==active)return false;
+  if(active!=='all' && !['saved','cet6','known','pending','weak'].includes(active) && label(w)!==active)return false;
   if(q && !w.word.toLowerCase().includes(q) && !String(w.meaning||'').toLowerCase().includes(q) && !String(w.extraMeaning||'').toLowerCase().includes(q))return false;
   return true;
  });
@@ -200,10 +235,11 @@ function startSession(type,fromWord){
  if(!VOCAB.length){toast('当前词库为空');return}
  const due=dueWords();const done=daily();const goal=Number(state.prefs.goal)||20;
  let words=[];
- if(type==='review'){words=due;if(!words.length){toast('目前没有到期的单词');return}}
+ if(type==='diagnostic'){words=diagnosticSample();if(!words.length){toast('当前没有尚未诊断的未学习词');return}}
+ else if(type==='review'){words=due;if(!words.length){toast('目前没有到期的单词');return}}
  else if(type==='direct'){words=[getWord(fromWord)].filter(Boolean)}
  else {const available=Math.max(0,goal-done.new);words=pendingNew().slice(0,available);if(!words.length){toast('今日新词已完成，可以浏览词库或复习');return}}
- session={mode:type,wordIds:words.map(w=>w.word),index:0,ratings:[],repeatCounts:{},skipped:0,revealed:false};
+ session={mode:type,wordIds:words.map(w=>w.word),index:0,ratings:[],repeatCounts:{},skipped:0,diagnosticResults:[],revealed:false};
  hideDetail();$('finish-shell').classList.add('is-hidden');$('study-shell').classList.remove('is-hidden');$('study-shell').setAttribute('aria-hidden','false');
  $('study-shell').dataset.studyTheme=state.prefs.theme;
  document.documentElement.style.overflow='hidden';
@@ -214,20 +250,20 @@ function showSessionWord(){
  if(session.index>=session.wordIds.length){completeSession();return}
  const w=getWord(session.wordIds[session.index]);if(!w){session.index++;showSessionWord();return}
  session.revealed=false;const count=session.wordIds.length,idx=session.index;
- $('study-mode-label').textContent=session.mode==='review'?'到期复习':session.mode==='direct'?'单词巩固':'新词学习';
+ $('study-mode-label').textContent=session.mode==='diagnostic'?'词汇自测':session.mode==='review'?'到期复习':session.mode==='direct'?'单词巩固':'新词学习';
  $('study-index').textContent=`${String(idx+1).padStart(2,'0')} / ${String(count).padStart(2,'0')}`;
  $('study-progress-fill').style.width=(idx/count*100)+'%';
  $('word-priority').textContent=isSample()?'示例词库':({P0:'考研核心',P1:'考研重点',P2:'考研基础',P3:'考研补充'}[label(w)]||'考研词汇');
  $('word-pos').textContent='MEMORY PRACTICE';
  $('study-word').textContent=w.word;$('study-phonetic').textContent=w.phonetic||'　';
  $('study-prompt').classList.remove('is-hidden');$('reveal-content').classList.add('is-hidden');
- $('reveal-answer').classList.remove('is-hidden');$('rating-buttons').classList.add('is-hidden');$('study-known').hidden=true;
+ $('reveal-answer').classList.remove('is-hidden');$('rating-buttons').classList.add('is-hidden');$('study-known').hidden=true;$('diagnostic-buttons').hidden=true;
  $('study-scroll').scrollTop=0;updateSaveButtons();
 }
 function reveal(){if(!session||session.revealed)return;session.revealed=true;
  const w=getWord(session.wordIds[session.index]);if(!w)return;
  haptic();$('study-prompt').classList.add('is-hidden');$('reveal-content').classList.remove('is-hidden');
- $('reveal-answer').classList.add('is-hidden');$('rating-buttons').classList.remove('is-hidden');$('study-known').hidden=!!progressOf(w.word)||isKnown(w.word);
+ $('reveal-answer').classList.add('is-hidden');$('rating-buttons').classList.toggle('is-hidden',session.mode==='diagnostic');$('diagnostic-buttons').hidden=session.mode!=='diagnostic';$('study-known').hidden=session.mode==='diagnostic'||!!progressOf(w.word)||isKnown(w.word);
  $('study-meaning').textContent=w.meaning||'暂无释义';$('study-extra-meaning').textContent=w.extraMeaning?`补充义项：${w.extraMeaning}`:'';
  $('study-ranking').textContent=isSample()?'示例词汇':rankingText(w);
  $('context-block').hidden=!w.example;
@@ -235,8 +271,16 @@ function reveal(){if(!session||session.revealed)return;session.revealed=true;
  $('study-example-zh').textContent=w.exampleZh||'';$('context-source').textContent=w.exampleSource||'来源未核对'}
  $('study-scroll').scrollTo({top:0,behavior:state.prefs.reduceMotion?'instant':'smooth'});
 }
+function recordDiagnostic(result){
+ if(!session||session.mode!=='diagnostic'||!session.revealed||clickBlock||!['unknown','partial','accurate'].includes(result))return;
+ const w=getWord(session.wordIds[session.index]);if(!w||progressOf(w.word))return;
+ const key=wordKey(w.word);state.diagnostic[key]=result;
+ if(result==='accurate')state.known[key]=true;else delete state.known[key];
+ state.prefs.studyOrder='personal';session.diagnosticResults.push(result);
+ persist();haptic();session.index++;showSessionWord();
+}
 function skipKnown(){
- if(!session||!session.revealed||clickBlock)return;
+ if(!session||session.mode==='diagnostic'||!session.revealed||clickBlock)return;
  const w=getWord(session.wordIds[session.index]);if(!w||progressOf(w.word)||isKnown(w.word))return;
  const key=wordKey(w.word);state.known[key]=true;session.skipped++;
  if(session.mode==='new'){
@@ -246,7 +290,7 @@ function skipKnown(){
  }
  persist();session.index++;showSessionWord();
 }
-function recordRating(rating){if(!session||!session.revealed||clickBlock)return;
+function recordRating(rating){if(!session||session.mode==='diagnostic'||!session.revealed||clickBlock)return;
  const w=getWord(session.wordIds[session.index]);if(!w)return;
  clickBlock=true;const key=wordKey(w.word),prev=progressOf(w.word),wasNew=!prev,now=new Date();
  let result;try{result=window.StudyScheduler.review(prev,rating,now)}catch(err){console.error(err);toast('复习算法出现错误');clickBlock=false;return}
@@ -261,10 +305,14 @@ function recordRating(rating){if(!session||!session.revealed||clickBlock)return;
 }
 function completeSession(){
  if(!session)return;
- const total=session.ratings.length,success=session.ratings.filter(x=>x==='good'||x==='easy').length;
- $('finish-count').textContent=String(total);
+ const diagnostic=session.mode==='diagnostic';
+ const total=diagnostic?session.diagnosticResults.length:session.ratings.length,success=diagnostic?session.diagnosticResults.filter(x=>x==='accurate').length:session.ratings.filter(x=>x==='good'||x==='easy').length;
+ $('finish-count').textContent=String(total);$('finish-rate-label').textContent=diagnostic?'本轮自评准确回忆比例':'本次回忆成功率';
  $('finish-rate').textContent=total?Math.round(success/total*100)+'%':'0%';
  $('finish-summary').textContent=`这次完成 ${total} 次记忆评价。${success} 次能够顺利回忆。${session.skipped?`另有 ${session.skipped} 个自认熟悉词已从新词计划排除。`:''}`;
+ if(diagnostic){const unknown=session.diagnosticResults.filter(x=>x==='unknown').length,partial=session.diagnosticResults.filter(x=>x==='partial').length;
+  $('finish-summary').textContent=`本轮自测 ${total} 词：不认识 ${unknown}，部分认识 ${partial}，自评准确 ${success}。薄弱词已进入个性化新词计划；自评准确词暂不安排。本轮结果不代表全部词汇掌握率。`;
+ }
  $('study-shell').classList.add('is-hidden');$('study-shell').setAttribute('aria-hidden','true');
  $('finish-shell').classList.remove('is-hidden');$('finish-shell').setAttribute('aria-hidden','false');session=null;
 }
@@ -305,6 +353,8 @@ function bind(){
  $('header-search').addEventListener('click',()=>page('library',true));
  $('start-review').addEventListener('click',()=>{if(dueWords().length)startSession('review');else if(pendingNew().length && Number(state.prefs.goal)>daily().new)startSession('new');else page('library')});
  $('start-new').addEventListener('click',()=>startSession('new'));
+ $('start-diagnostic').addEventListener('click',()=>startSession('diagnostic'));
+ $('diagnostic-buttons').addEventListener('click',e=>{const node=e.target.closest('[data-diagnostic]');if(node)recordDiagnostic(node.dataset.diagnostic)});
  $('browse-words').addEventListener('click',()=>page('library'));
  $('level-filters').addEventListener('click',e=>{const el=e.target.closest('button[data-level]');if(!el)return;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.toggle('is-selected',c===el));renderLibrary()});
  $('search-words').addEventListener('input',()=>renderLibrary());

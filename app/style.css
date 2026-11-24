@@ -215,3 +215,10 @@ body { background:#e9e5dc; }
 .detail-bottom {display:flex;gap:8px;align-items:center;}
 .detail-bottom button {flex:1;min-width:0;}
 #detail-known {font-size:13px;text-decoration:underline;text-underline-offset:3px;}
+
+.diagnostic-entry {border-top:1px solid currentColor;padding:12px 0;margin:10px 0;}
+.diagnostic-entry button {font:inherit;color:inherit;background:transparent;border:0;padding:5px 0;text-decoration:underline;text-underline-offset:3px;}
+.diagnostic-entry button:disabled {opacity:.45;}
+.diagnostic-entry span,.diagnostic-entry p {display:block;font-size:12px;line-height:1.6;margin:4px 0;}
+.diagnostic-ratings {grid-template-columns:repeat(3,minmax(0,1fr));}
+.diagnostic-ratings[hidden] {display:none;}

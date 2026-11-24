@@ -25,7 +25,7 @@ function setup(initialState){
  }
  const els=new Map(keys.map(k=>[k,new El(k)]));
  const nav=['today','library','records'].map(page=>{const e=new El();e.dataset.page=page;return e});
- const chips=['all','P0','P1','P2','P3','cet6','saved','pending','known'].map(level=>{const e=new El();e.dataset.level=level;if(level==='all')e.classList.add('is-selected');return e});
+ const chips=['all','P0','P1','P2','P3','cet6','saved','pending','known','weak'].map(level=>{const e=new El();e.dataset.level=level;if(level==='all')e.classList.add('is-selected');return e});
  for(const k of ['study-shell','detail-shell','finish-shell','rating-buttons','reveal-content'])els.get(k).classList.add('is-hidden');
  const local=new Map(initialState?[['wordworld_state_v1',JSON.stringify(initialState)]]:[]);
  const doc={
@@ -274,4 +274,89 @@ test('old records load without known status and existing learned words cannot be
  assert.equal(restored.els.get('detail-known').hidden,true);
  restored.els.get('detail-known').click();
  assert.equal(restored.els.get('detail-known').hidden,true);
+});
+
+test('diagnostic samples 12 distinct words across the full priority range without writing review records',()=>{
+ const {els,win,local}=setup();
+ const ordered=[...win.WORD_WORLD_VOCAB].sort((a,b)=>(a.priority?.rank??99999)-(b.priority?.rank??99999)||a.word.localeCompare(b.word,'en'));
+ const ranks=new Map(ordered.map((w,i)=>[w.word,Math.floor(i*4/ordered.length)]));
+ els.get('start-diagnostic').click();
+ const words=[],groups=new Set();
+ for(let i=0;i<12;i++){
+  const word=els.get('study-word').textContent;
+  words.push(word);groups.add(ranks.get(word));
+  els.get('reveal-answer').click();
+  assert.equal(els.get('diagnostic-buttons').hidden,false);
+  assert.equal(els.get('rating-buttons').classList.contains('is-hidden'),true);
+  // A regular study rating cannot bypass the diagnostic workflow.
+  els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'easy'}})}});
+  els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:i===0?'unknown':i===1?'partial':'accurate'}})}});
+ }
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(new Set(words).size,12);
+ assert.equal(groups.size,4);
+ assert.equal(Object.keys(state.progress).length,0);
+ assert.equal(Object.keys(state.diagnostic).length,12);
+ assert.equal(Object.keys(state.known).length,10);
+ assert.equal(Object.values(state.daily)[0].new,0);
+ assert.equal(Object.values(state.daily)[0].reviews,0);
+ assert.equal(state.prefs.studyOrder,'personal');
+ assert.match(els.get('finish-summary').textContent,/不认识 1，部分认识 1，自评准确 10/);
+ els.get('finish-home').click();
+ els.get('start-diagnostic').click();
+ assert.ok(!words.includes(els.get('study-word').textContent));
+});
+test('diagnostic weaknesses feed personal learning, then leave the pending queue after normal rating',()=>{
+ const {els,local,nav,chips}=setup();
+ els.get('start-diagnostic').click();
+ const word=els.get('study-word').textContent;
+ els.get('reveal-answer').click();
+ els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:'unknown'}})}});
+ els.get('leave-study').click();
+ nav[1].click();
+ els.get('level-filters').dispatch('click',{target:chips.find(c=>c.dataset.level==='weak')});
+ assert.equal(els.get('library-count').textContent,'1 词');
+ nav[0].click();
+ els.get('start-review').click();
+ assert.equal(els.get('study-word').textContent,word);
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ els.get('leave-study').click();
+ nav[1].click();
+ assert.equal(els.get('library-count').textContent,'0 词');
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(state.progress).length,1);
+ assert.equal(Object.keys(state.diagnostic).length,1);
+ assert.equal(Object.values(state.daily)[0].new,1);
+});
+test('a previously self-reported familiar word can be reclassified by diagnostic evidence',()=>{
+ const base=setup(), ordered=[...base.win.WORD_WORLD_VOCAB].sort((a,b)=>(a.priority?.rank??99999)-(b.priority?.rank??99999)||a.word.localeCompare(b.word,'en'));
+ base.els.get('start-diagnostic').click();
+ const word=base.els.get('study-word').textContent;
+ const state={schema:3,progress:{},saved:{},known:{[word]:true},prefs:{goal:20},daily:{}};
+ const {els,local}=setup(state);
+ els.get('start-diagnostic').click();
+ assert.equal(els.get('study-word').textContent,word);
+ els.get('reveal-answer').click();
+ els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:'partial'}})}});
+ const next=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(next.known).length,0);
+ assert.equal(next.diagnostic[word],'partial');
+});
+test('older backups preserve their scheduled reviews and ignore invalid diagnostic records',()=>{
+ const base=setup();
+ base.els.get('start-review').click();
+ const word=base.els.get('study-word').textContent;
+ base.els.get('reveal-answer').click();
+ base.els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ const state=JSON.parse(base.local.get('wordworld_state_v1'));
+ state.diagnostic={bogus:'unknown',[word]:'invalid'};
+ const restored=setup(state);
+ restored.els.get('start-diagnostic').click();
+ assert.ok(restored.els.get('study-word').textContent!==word);
+ restored.els.get('reveal-answer').click();
+ restored.els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:'partial'}})}});
+ const next=JSON.parse(restored.local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(next.progress).length,1);
+ assert.equal(Object.keys(next.diagnostic).length,1);
 });

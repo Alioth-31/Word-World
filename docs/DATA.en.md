@@ -71,3 +71,7 @@ Before distributing APKs that contain third-party data, check the actual bundled
 ### Personalized study (phase one)
 
 The personal order supports balanced, CET6-first and English I-first goals. CET6 overlap is prioritized without excluding other entries; English I frequency reorders within 100-position importance bands. This is an interpretable heuristic, not a validated learning-effectiveness model. Self-reported familiar words are stored separately in the local `known` backup field, excluded from new-word plans, and recoverable from the library. They do not count as learned or stable; existing review records cannot be skipped through this feature. Rating a previously excluded word in direct study returns it to normal scheduling. Legacy backups remain compatible.
+
+### Stratified vocabulary self-assessment (phase two)
+
+Each round samples up to 12 previously unassessed entries without review records, taking up to three from each quartile of the importance-ordered vocabulary, then filling from remaining entries. Learners recall before revealing definitions and report unknown, partial, or accurate recall. The local `diagnostic` field stores the responses. Accurate recall marks self-reported familiarity; weak responses remove that mark and take priority in personal study. Assessment never creates FSRS records or counts toward study totals. Normal study removes the entry from the pending weakness queue while preserving diagnostic history. Results are subjective and do not estimate total vocabulary size or sense-level mastery.
