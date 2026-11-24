@@ -41,6 +41,14 @@ The dataset contains 38,035 passage tokens: 26,674 exact matches, 6,686 inferred
 
 To reproduce, place the [pinned corpus revision](https://github.com/LIziak112/structured-kaoyan-english/tree/ce0e9ac7c48e74738ffaeb04ff7033e69ea314c9) in `sources/structured-kaoyan-english`, then run `npm run data:exam1` (or `npm run data:exam1 -- /path/to/corpus`). The script checks each file's Git blob SHA-1 and validates the expected passage structure. The upstream corpus is unofficial and may contain transcription errors.
 
+## Temporal ranking evaluation
+
+Run `npm run eval:exam1` to reproduce the [evaluation report](../data/exam1-ranking-eval.json) without raw exam text. Candidate models train on 2010–2017 and are selected on 2018–2021 only, then rebuilt using 2010–2021 and evaluated on 2022–2025. Token and type coverage denominators are matched single-word vocabulary entries within the evaluated subset, not all passage tokens. Results distinguish all entries, non-A1/A2 entries (including unknown CEFR), known B1 or higher entries, and exact versus exact-plus-inferred targets.
+
+The validation criterion averages exact-target token and type coverage at budgets of 500, 1000 and 2000 non-A1/A2 words. The selected candidate uses 50% log-normalized weighted count (exact + 0.5 inferred) and 50% weighted year coverage (1 for exact, 0.5 for inferred-only). Its validation score is 69.66%. On 2022–2025, top-1000 exact-token/type coverage is 77.98% / 60.64%, compared with 35.98% / 48.91% for V2 and 78.04% / 62.23% for mixed frequency. Upstream frequency and V2 may include evaluation years, so they are retrospective comparators only; the dictionary and CEFR annotations are retrospectively defined as well. Coverage is not exam performance, and the V2 default remains unchanged.
+
+An exploratory audit of inferred matches in 2010, 2015, 2020 and 2025 found 1,737 inferred occurrences across 789 distinct form-to-entry pairs. For instance, according → accord may conflate a fixed expression with a verb. Inferred counts are not disambiguated lemma counts. This post-hoc observation was not used to change the evaluated model or frequency dataset.
+
 ## Third-party sources
 
 | Source | Use | Stated license and limitations |

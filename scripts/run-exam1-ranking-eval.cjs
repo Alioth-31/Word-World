@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const {evaluate}=require('./exam1-ranking-eval.cjs');
+const root=path.resolve(__dirname,'..');
+const report=JSON.parse(fs.readFileSync(path.join(root,'data/exam1-frequency.json'),'utf8'));
+const context={window:{}};
+vm.runInNewContext(fs.readFileSync(path.join(root,'app/data/vocabulary.js'),'utf8'),context,{timeout:10000});
+const result=evaluate(report,context.window.WORD_WORLD_VOCAB);
+fs.writeFileSync(path.join(root,'data/exam1-ranking-eval.json'),JSON.stringify(result,null,2)+'\n');
+console.log('Selected on validation:',result.selected);
+console.table(Object.fromEntries(Object.entries(result.holdout.groups.nonbasic.outcomes.exact.scores).map(([name,rows])=>[name,Object.fromEntries(rows.map(m=>['top '+m.k,(100*m.tokenCoverage).toFixed(2)+'% tokens / '+(100*m.typeCoverage).toFixed(2)+'% types']))])));

@@ -1,0 +1,2699 @@
+{
+  "schema": 1,
+  "sourceRevision": "ce0e9ac7c48e74738ffaeb04ff7033e69ea314c9",
+  "scope": {
+    "excluded": "multiword entries excluded to avoid overlapping phrase counts",
+    "groups": {
+      "all": "all single-word entries",
+      "nonbasic": "exclude CEFR A1/A2; unknown retained",
+      "knownB": "only B1/B2/C1/C2"
+    },
+    "denominator": "matched vocabulary tokens and distinct entries in each held-out subset; not all passage tokens",
+    "selection": "Mean of exact-target token and type coverage at 500/1000/2000 on nonbasic validation subset; no holdout selection",
+    "limitations": "2024 vocabulary and CEFR labels are retrospectively defined. Upstream frequency and V2 may include evaluation years and are descriptive comparators, not temporally independent models. Exact matches are not sense-disambiguated. Vocabulary coverage is not measured exam performance."
+  },
+  "budgets": [
+    500,
+    1000,
+    2000
+  ],
+  "models": {
+    "exact": {
+      "description": "Training exact-match count",
+      "temporal": true
+    },
+    "estimated": {
+      "description": "Training exact + inferred count",
+      "temporal": true
+    },
+    "weighted": {
+      "description": "Training exact + 0.5 inferred count",
+      "temporal": true
+    },
+    "years": {
+      "description": "Training years, exact hit 1; inferred-only hit 0.5",
+      "temporal": true
+    },
+    "hybrid25": {
+      "description": "75% log weighted count + 25% weighted year share",
+      "temporal": true
+    },
+    "hybrid50": {
+      "description": "50% log weighted count + 50% weighted year share",
+      "temporal": true
+    },
+    "hybrid75": {
+      "description": "25% log weighted count + 75% weighted year share",
+      "temporal": true
+    },
+    "mixed": {
+      "description": "Full upstream mixed frequency (retrospective comparator)",
+      "temporal": false
+    },
+    "v2": {
+      "description": "Bundled V2 importance (retrospective comparator)",
+      "temporal": false
+    }
+  },
+  "selection": [
+    {
+      "name": "hybrid50",
+      "objective": 0.696630485696376
+    },
+    {
+      "name": "hybrid75",
+      "objective": 0.695403070818954
+    },
+    {
+      "name": "hybrid25",
+      "objective": 0.6952110585301675
+    },
+    {
+      "name": "weighted",
+      "objective": 0.6925253261051756
+    },
+    {
+      "name": "years",
+      "objective": 0.6924864357238145
+    },
+    {
+      "name": "exact",
+      "objective": 0.6890922095247279
+    },
+    {
+      "name": "estimated",
+      "objective": 0.6807105430532308
+    }
+  ],
+  "selected": "hybrid50",
+  "validation": {
+    "train": [
+      2010,
+      2017
+    ],
+    "test": [
+      2018,
+      2021
+    ],
+    "groups": {
+      "all": {
+        "eligible": 5524,
+        "outcomes": {
+          "exact": {
+            "total": 6677,
+            "types": 1266,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 5232,
+                  "distinct": 430,
+                  "tokenCoverage": 0.7835854425640257,
+                  "typeCoverage": 0.33965244865718797
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5755,
+                  "distinct": 676,
+                  "tokenCoverage": 0.8619140332484648,
+                  "typeCoverage": 0.5339652448657188
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6196,
+                  "distinct": 943,
+                  "tokenCoverage": 0.9279616594278868,
+                  "typeCoverage": 0.7448657187993681
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 5222,
+                  "distinct": 424,
+                  "tokenCoverage": 0.7820877639658529,
+                  "typeCoverage": 0.334913112164297
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5742,
+                  "distinct": 665,
+                  "tokenCoverage": 0.8599670510708401,
+                  "typeCoverage": 0.5252764612954186
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6173,
+                  "distinct": 928,
+                  "tokenCoverage": 0.9245169986520893,
+                  "typeCoverage": 0.7330173775671406
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 5254,
+                  "distinct": 435,
+                  "tokenCoverage": 0.786880335480006,
+                  "typeCoverage": 0.34360189573459715
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5757,
+                  "distinct": 674,
+                  "tokenCoverage": 0.8622135689680994,
+                  "typeCoverage": 0.5323854660347551
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6206,
+                  "distinct": 948,
+                  "tokenCoverage": 0.9294593380260596,
+                  "typeCoverage": 0.7488151658767772
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 5159,
+                  "distinct": 415,
+                  "tokenCoverage": 0.7726523887973641,
+                  "typeCoverage": 0.3278041074249605
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5784,
+                  "distinct": 688,
+                  "tokenCoverage": 0.8662573011831661,
+                  "typeCoverage": 0.5434439178515008
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6208,
+                  "distinct": 950,
+                  "tokenCoverage": 0.9297588737456942,
+                  "typeCoverage": 0.7503949447077409
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 5258,
+                  "distinct": 435,
+                  "tokenCoverage": 0.7874794069192751,
+                  "typeCoverage": 0.34360189573459715
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5764,
+                  "distinct": 682,
+                  "tokenCoverage": 0.8632619439868204,
+                  "typeCoverage": 0.5387045813586098
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6212,
+                  "distinct": 952,
+                  "tokenCoverage": 0.9303579451849633,
+                  "typeCoverage": 0.7519747235387045
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 5230,
+                  "distinct": 430,
+                  "tokenCoverage": 0.7832859068443911,
+                  "typeCoverage": 0.33965244865718797
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5779,
+                  "distinct": 686,
+                  "tokenCoverage": 0.8655084618840797,
+                  "typeCoverage": 0.5418641390205371
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6212,
+                  "distinct": 952,
+                  "tokenCoverage": 0.9303579451849633,
+                  "typeCoverage": 0.7519747235387045
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 5223,
+                  "distinct": 428,
+                  "tokenCoverage": 0.7822375318256702,
+                  "typeCoverage": 0.3380726698262243
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5789,
+                  "distinct": 690,
+                  "tokenCoverage": 0.8670061404822526,
+                  "typeCoverage": 0.5450236966824644
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6212,
+                  "distinct": 952,
+                  "tokenCoverage": 0.9303579451849633,
+                  "typeCoverage": 0.7519747235387045
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 5170,
+                  "distinct": 417,
+                  "tokenCoverage": 0.7742998352553542,
+                  "typeCoverage": 0.3293838862559242
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5777,
+                  "distinct": 687,
+                  "tokenCoverage": 0.8652089261644451,
+                  "typeCoverage": 0.542654028436019
+                },
+                {
+                  "k": 2000,
+                  "tokens": 6250,
+                  "distinct": 990,
+                  "tokenCoverage": 0.9360491238580201,
+                  "typeCoverage": 0.7819905213270142
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 619,
+                  "distinct": 270,
+                  "tokenCoverage": 0.09270630522689831,
+                  "typeCoverage": 0.2132701421800948
+                },
+                {
+                  "k": 1000,
+                  "tokens": 916,
+                  "distinct": 442,
+                  "tokenCoverage": 0.13718735959263142,
+                  "typeCoverage": 0.34913112164297
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2110,
+                  "distinct": 676,
+                  "tokenCoverage": 0.3160101842144676,
+                  "typeCoverage": 0.5339652448657188
+                }
+              ]
+            }
+          },
+          "estimated": {
+            "total": 8356,
+            "types": 1606,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 6038,
+                  "distinct": 446,
+                  "tokenCoverage": 0.7225945428434658,
+                  "typeCoverage": 0.2777085927770859
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6836,
+                  "distinct": 743,
+                  "tokenCoverage": 0.8180947821924366,
+                  "typeCoverage": 0.462640099626401
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7512,
+                  "distinct": 1090,
+                  "tokenCoverage": 0.8989947343226424,
+                  "typeCoverage": 0.6787048567870486
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 6183,
+                  "distinct": 459,
+                  "tokenCoverage": 0.7399473432264241,
+                  "typeCoverage": 0.28580323785803236
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6995,
+                  "distinct": 772,
+                  "tokenCoverage": 0.8371230253709909,
+                  "typeCoverage": 0.4806973848069738
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7594,
+                  "distinct": 1115,
+                  "tokenCoverage": 0.9088080421254189,
+                  "typeCoverage": 0.6942714819427148
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 6156,
+                  "distinct": 458,
+                  "tokenCoverage": 0.7367161321206319,
+                  "typeCoverage": 0.2851805728518057
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6985,
+                  "distinct": 770,
+                  "tokenCoverage": 0.8359262805169938,
+                  "typeCoverage": 0.4794520547945205
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7600,
+                  "distinct": 1119,
+                  "tokenCoverage": 0.9095260890378172,
+                  "typeCoverage": 0.6967621419676214
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 6049,
+                  "distinct": 447,
+                  "tokenCoverage": 0.7239109621828627,
+                  "typeCoverage": 0.2783312577833126
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6960,
+                  "distinct": 769,
+                  "tokenCoverage": 0.832934418382001,
+                  "typeCoverage": 0.4788293897882939
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7595,
+                  "distinct": 1120,
+                  "tokenCoverage": 0.9089277166108186,
+                  "typeCoverage": 0.6973848069738481
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 6162,
+                  "distinct": 459,
+                  "tokenCoverage": 0.7374341790330302,
+                  "typeCoverage": 0.28580323785803236
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6968,
+                  "distinct": 774,
+                  "tokenCoverage": 0.8338918142651986,
+                  "typeCoverage": 0.48194271481942713
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7604,
+                  "distinct": 1123,
+                  "tokenCoverage": 0.910004786979416,
+                  "typeCoverage": 0.699252801992528
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 6143,
+                  "distinct": 457,
+                  "tokenCoverage": 0.7351603638104356,
+                  "typeCoverage": 0.2845579078455791
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6955,
+                  "distinct": 769,
+                  "tokenCoverage": 0.8323360459550024,
+                  "typeCoverage": 0.4788293897882939
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7604,
+                  "distinct": 1123,
+                  "tokenCoverage": 0.910004786979416,
+                  "typeCoverage": 0.699252801992528
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 6125,
+                  "distinct": 455,
+                  "tokenCoverage": 0.7330062230732408,
+                  "typeCoverage": 0.2833125778331258
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6966,
+                  "distinct": 773,
+                  "tokenCoverage": 0.8336524652943992,
+                  "typeCoverage": 0.4813200498132005
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7604,
+                  "distinct": 1123,
+                  "tokenCoverage": 0.910004786979416,
+                  "typeCoverage": 0.699252801992528
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 6191,
+                  "distinct": 457,
+                  "tokenCoverage": 0.7409047391096218,
+                  "typeCoverage": 0.2845579078455791
+                },
+                {
+                  "k": 1000,
+                  "tokens": 7075,
+                  "distinct": 799,
+                  "tokenCoverage": 0.8466969842029679,
+                  "typeCoverage": 0.4975093399750934
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7741,
+                  "distinct": 1186,
+                  "tokenCoverage": 0.9264001914791766,
+                  "typeCoverage": 0.7384806973848069
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 957,
+                  "distinct": 351,
+                  "tokenCoverage": 0.11452848252752514,
+                  "typeCoverage": 0.21855541718555418
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1384,
+                  "distinct": 572,
+                  "tokenCoverage": 0.1656294877932025,
+                  "typeCoverage": 0.3561643835616438
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2864,
+                  "distinct": 888,
+                  "tokenCoverage": 0.3427477261847774,
+                  "typeCoverage": 0.5529265255292652
+                }
+              ]
+            }
+          }
+        }
+      },
+      "nonbasic": {
+        "eligible": 3952,
+        "outcomes": {
+          "exact": {
+            "total": 1736,
+            "types": 669,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1154,
+                  "distinct": 292,
+                  "tokenCoverage": 0.6647465437788018,
+                  "typeCoverage": 0.43647234678624813
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1360,
+                  "distinct": 417,
+                  "tokenCoverage": 0.783410138248848,
+                  "typeCoverage": 0.6233183856502242
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1490,
+                  "distinct": 514,
+                  "tokenCoverage": 0.8582949308755761,
+                  "typeCoverage": 0.7683109118086696
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1141,
+                  "distinct": 279,
+                  "tokenCoverage": 0.657258064516129,
+                  "typeCoverage": 0.4170403587443946
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1327,
+                  "distinct": 404,
+                  "tokenCoverage": 0.7644009216589862,
+                  "typeCoverage": 0.6038863976083707
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1498,
+                  "distinct": 521,
+                  "tokenCoverage": 0.8629032258064516,
+                  "typeCoverage": 0.7787742899850523
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1164,
+                  "distinct": 293,
+                  "tokenCoverage": 0.6705069124423964,
+                  "typeCoverage": 0.43796711509715996
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1357,
+                  "distinct": 417,
+                  "tokenCoverage": 0.7816820276497696,
+                  "typeCoverage": 0.6233183856502242
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1498,
+                  "distinct": 521,
+                  "tokenCoverage": 0.8629032258064516,
+                  "typeCoverage": 0.7787742899850523
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1168,
+                  "distinct": 298,
+                  "tokenCoverage": 0.6728110599078341,
+                  "typeCoverage": 0.445440956651719
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1350,
+                  "distinct": 413,
+                  "tokenCoverage": 0.7776497695852534,
+                  "typeCoverage": 0.617339312406577
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1498,
+                  "distinct": 521,
+                  "tokenCoverage": 0.8629032258064516,
+                  "typeCoverage": 0.7787742899850523
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1175,
+                  "distinct": 299,
+                  "tokenCoverage": 0.6768433179723502,
+                  "typeCoverage": 0.4469357249626308
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1361,
+                  "distinct": 416,
+                  "tokenCoverage": 0.7839861751152074,
+                  "typeCoverage": 0.6218236173393124
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1498,
+                  "distinct": 521,
+                  "tokenCoverage": 0.8629032258064516,
+                  "typeCoverage": 0.7787742899850523
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1183,
+                  "distinct": 303,
+                  "tokenCoverage": 0.6814516129032258,
+                  "typeCoverage": 0.452914798206278
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1360,
+                  "distinct": 415,
+                  "tokenCoverage": 0.783410138248848,
+                  "typeCoverage": 0.6203288490284006
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1498,
+                  "distinct": 521,
+                  "tokenCoverage": 0.8629032258064516,
+                  "typeCoverage": 0.7787742899850523
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1178,
+                  "distinct": 300,
+                  "tokenCoverage": 0.6785714285714286,
+                  "typeCoverage": 0.4484304932735426
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1360,
+                  "distinct": 415,
+                  "tokenCoverage": 0.783410138248848,
+                  "typeCoverage": 0.6203288490284006
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1498,
+                  "distinct": 521,
+                  "tokenCoverage": 0.8629032258064516,
+                  "typeCoverage": 0.7787742899850523
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1175,
+                  "distinct": 292,
+                  "tokenCoverage": 0.6768433179723502,
+                  "typeCoverage": 0.43647234678624813
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1412,
+                  "distinct": 442,
+                  "tokenCoverage": 0.8133640552995391,
+                  "typeCoverage": 0.6606875934230194
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1600,
+                  "distinct": 585,
+                  "tokenCoverage": 0.9216589861751152,
+                  "typeCoverage": 0.874439461883408
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 494,
+                  "distinct": 243,
+                  "tokenCoverage": 0.28456221198156684,
+                  "typeCoverage": 0.3632286995515695
+                },
+                {
+                  "k": 1000,
+                  "tokens": 727,
+                  "distinct": 381,
+                  "tokenCoverage": 0.41877880184331795,
+                  "typeCoverage": 0.5695067264573991
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1554,
+                  "distinct": 605,
+                  "tokenCoverage": 0.8951612903225806,
+                  "typeCoverage": 0.9043348281016442
+                }
+              ]
+            }
+          },
+          "estimated": {
+            "total": 2416,
+            "types": 874,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1495,
+                  "distinct": 328,
+                  "tokenCoverage": 0.6187913907284768,
+                  "typeCoverage": 0.37528604118993136
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1778,
+                  "distinct": 482,
+                  "tokenCoverage": 0.7359271523178808,
+                  "typeCoverage": 0.551487414187643
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2002,
+                  "distinct": 625,
+                  "tokenCoverage": 0.8286423841059603,
+                  "typeCoverage": 0.7151029748283753
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1555,
+                  "distinct": 339,
+                  "tokenCoverage": 0.6436258278145696,
+                  "typeCoverage": 0.3878718535469107
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1813,
+                  "distinct": 498,
+                  "tokenCoverage": 0.7504139072847682,
+                  "typeCoverage": 0.5697940503432495
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2075,
+                  "distinct": 666,
+                  "tokenCoverage": 0.8588576158940397,
+                  "typeCoverage": 0.7620137299771167
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1545,
+                  "distinct": 340,
+                  "tokenCoverage": 0.6394867549668874,
+                  "typeCoverage": 0.3890160183066362
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1830,
+                  "distinct": 508,
+                  "tokenCoverage": 0.7574503311258278,
+                  "typeCoverage": 0.5812356979405034
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2075,
+                  "distinct": 666,
+                  "tokenCoverage": 0.8588576158940397,
+                  "typeCoverage": 0.7620137299771167
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1535,
+                  "distinct": 340,
+                  "tokenCoverage": 0.6353476821192053,
+                  "typeCoverage": 0.3890160183066362
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1806,
+                  "distinct": 497,
+                  "tokenCoverage": 0.7475165562913907,
+                  "typeCoverage": 0.568649885583524
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2075,
+                  "distinct": 666,
+                  "tokenCoverage": 0.8588576158940397,
+                  "typeCoverage": 0.7620137299771167
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1554,
+                  "distinct": 342,
+                  "tokenCoverage": 0.6432119205298014,
+                  "typeCoverage": 0.391304347826087
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1832,
+                  "distinct": 506,
+                  "tokenCoverage": 0.7582781456953642,
+                  "typeCoverage": 0.5789473684210527
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2075,
+                  "distinct": 666,
+                  "tokenCoverage": 0.8588576158940397,
+                  "typeCoverage": 0.7620137299771167
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1560,
+                  "distinct": 345,
+                  "tokenCoverage": 0.6456953642384106,
+                  "typeCoverage": 0.39473684210526316
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1830,
+                  "distinct": 504,
+                  "tokenCoverage": 0.7574503311258278,
+                  "typeCoverage": 0.5766590389016019
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2075,
+                  "distinct": 666,
+                  "tokenCoverage": 0.8588576158940397,
+                  "typeCoverage": 0.7620137299771167
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1555,
+                  "distinct": 344,
+                  "tokenCoverage": 0.6436258278145696,
+                  "typeCoverage": 0.39359267734553777
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1830,
+                  "distinct": 504,
+                  "tokenCoverage": 0.7574503311258278,
+                  "typeCoverage": 0.5766590389016019
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2075,
+                  "distinct": 666,
+                  "tokenCoverage": 0.8588576158940397,
+                  "typeCoverage": 0.7620137299771167
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1621,
+                  "distinct": 355,
+                  "tokenCoverage": 0.6709437086092715,
+                  "typeCoverage": 0.4061784897025172
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1944,
+                  "distinct": 538,
+                  "tokenCoverage": 0.804635761589404,
+                  "typeCoverage": 0.6155606407322655
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2226,
+                  "distinct": 747,
+                  "tokenCoverage": 0.9213576158940397,
+                  "typeCoverage": 0.8546910755148741
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 767,
+                  "distinct": 320,
+                  "tokenCoverage": 0.31746688741721857,
+                  "typeCoverage": 0.36613272311212813
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1089,
+                  "distinct": 496,
+                  "tokenCoverage": 0.4507450331125828,
+                  "typeCoverage": 0.5675057208237986
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2202,
+                  "distinct": 789,
+                  "tokenCoverage": 0.9114238410596026,
+                  "typeCoverage": 0.902745995423341
+                }
+              ]
+            }
+          }
+        }
+      },
+      "knownB": {
+        "eligible": 2793,
+        "outcomes": {
+          "exact": {
+            "total": 1656,
+            "types": 610,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1167,
+                  "distinct": 301,
+                  "tokenCoverage": 0.7047101449275363,
+                  "typeCoverage": 0.4934426229508197
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1369,
+                  "distinct": 423,
+                  "tokenCoverage": 0.8266908212560387,
+                  "typeCoverage": 0.6934426229508197
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 526,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8622950819672132
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1143,
+                  "distinct": 283,
+                  "tokenCoverage": 0.6902173913043478,
+                  "typeCoverage": 0.4639344262295082
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1340,
+                  "distinct": 406,
+                  "tokenCoverage": 0.8091787439613527,
+                  "typeCoverage": 0.6655737704918033
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 528,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8655737704918033
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1162,
+                  "distinct": 295,
+                  "tokenCoverage": 0.7016908212560387,
+                  "typeCoverage": 0.48360655737704916
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1353,
+                  "distinct": 413,
+                  "tokenCoverage": 0.8170289855072463,
+                  "typeCoverage": 0.6770491803278689
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 528,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8655737704918033
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1176,
+                  "distinct": 305,
+                  "tokenCoverage": 0.7101449275362319,
+                  "typeCoverage": 0.5
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1355,
+                  "distinct": 414,
+                  "tokenCoverage": 0.8182367149758454,
+                  "typeCoverage": 0.6786885245901639
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 528,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8655737704918033
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1179,
+                  "distinct": 303,
+                  "tokenCoverage": 0.7119565217391305,
+                  "typeCoverage": 0.4967213114754098
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1357,
+                  "distinct": 415,
+                  "tokenCoverage": 0.8194444444444444,
+                  "typeCoverage": 0.680327868852459
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 528,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8655737704918033
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1179,
+                  "distinct": 304,
+                  "tokenCoverage": 0.7119565217391305,
+                  "typeCoverage": 0.49836065573770494
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1357,
+                  "distinct": 415,
+                  "tokenCoverage": 0.8194444444444444,
+                  "typeCoverage": 0.680327868852459
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 528,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8655737704918033
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1177,
+                  "distinct": 304,
+                  "tokenCoverage": 0.7107487922705314,
+                  "typeCoverage": 0.49836065573770494
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1357,
+                  "distinct": 415,
+                  "tokenCoverage": 0.8194444444444444,
+                  "typeCoverage": 0.680327868852459
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1514,
+                  "distinct": 528,
+                  "tokenCoverage": 0.9142512077294686,
+                  "typeCoverage": 0.8655737704918033
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1177,
+                  "distinct": 293,
+                  "tokenCoverage": 0.7107487922705314,
+                  "typeCoverage": 0.48032786885245904
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1399,
+                  "distinct": 437,
+                  "tokenCoverage": 0.8448067632850241,
+                  "typeCoverage": 0.7163934426229508
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1569,
+                  "distinct": 568,
+                  "tokenCoverage": 0.947463768115942,
+                  "typeCoverage": 0.9311475409836065
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 500,
+                  "distinct": 245,
+                  "tokenCoverage": 0.30193236714975846,
+                  "typeCoverage": 0.4016393442622951
+                },
+                {
+                  "k": 1000,
+                  "tokens": 713,
+                  "distinct": 370,
+                  "tokenCoverage": 0.4305555555555556,
+                  "typeCoverage": 0.6065573770491803
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1637,
+                  "distinct": 597,
+                  "tokenCoverage": 0.9885265700483091,
+                  "typeCoverage": 0.978688524590164
+                }
+              ]
+            }
+          },
+          "estimated": {
+            "total": 2292,
+            "types": 788,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1508,
+                  "distinct": 335,
+                  "tokenCoverage": 0.6579406631762653,
+                  "typeCoverage": 0.4251269035532995
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1795,
+                  "distinct": 488,
+                  "tokenCoverage": 0.7831588132635253,
+                  "typeCoverage": 0.6192893401015228
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2041,
+                  "distinct": 643,
+                  "tokenCoverage": 0.8904886561954625,
+                  "typeCoverage": 0.815989847715736
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1557,
+                  "distinct": 343,
+                  "tokenCoverage": 0.6793193717277487,
+                  "typeCoverage": 0.4352791878172589
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1818,
+                  "distinct": 496,
+                  "tokenCoverage": 0.7931937172774869,
+                  "typeCoverage": 0.6294416243654822
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2097,
+                  "distinct": 676,
+                  "tokenCoverage": 0.9149214659685864,
+                  "typeCoverage": 0.8578680203045685
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1542,
+                  "distinct": 341,
+                  "tokenCoverage": 0.6727748691099477,
+                  "typeCoverage": 0.43274111675126903
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1818,
+                  "distinct": 498,
+                  "tokenCoverage": 0.7931937172774869,
+                  "typeCoverage": 0.631979695431472
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2097,
+                  "distinct": 676,
+                  "tokenCoverage": 0.9149214659685864,
+                  "typeCoverage": 0.8578680203045685
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1555,
+                  "distinct": 349,
+                  "tokenCoverage": 0.6784467713787086,
+                  "typeCoverage": 0.44289340101522845
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1817,
+                  "distinct": 498,
+                  "tokenCoverage": 0.7927574171029669,
+                  "typeCoverage": 0.631979695431472
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2097,
+                  "distinct": 676,
+                  "tokenCoverage": 0.9149214659685864,
+                  "typeCoverage": 0.8578680203045685
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1559,
+                  "distinct": 346,
+                  "tokenCoverage": 0.6801919720767888,
+                  "typeCoverage": 0.43908629441624364
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1819,
+                  "distinct": 499,
+                  "tokenCoverage": 0.793630017452007,
+                  "typeCoverage": 0.633248730964467
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2097,
+                  "distinct": 676,
+                  "tokenCoverage": 0.9149214659685864,
+                  "typeCoverage": 0.8578680203045685
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1559,
+                  "distinct": 346,
+                  "tokenCoverage": 0.6801919720767888,
+                  "typeCoverage": 0.43908629441624364
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1818,
+                  "distinct": 498,
+                  "tokenCoverage": 0.7931937172774869,
+                  "typeCoverage": 0.631979695431472
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2097,
+                  "distinct": 676,
+                  "tokenCoverage": 0.9149214659685864,
+                  "typeCoverage": 0.8578680203045685
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1561,
+                  "distinct": 349,
+                  "tokenCoverage": 0.681064572425829,
+                  "typeCoverage": 0.44289340101522845
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1818,
+                  "distinct": 498,
+                  "tokenCoverage": 0.7931937172774869,
+                  "typeCoverage": 0.631979695431472
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2097,
+                  "distinct": 676,
+                  "tokenCoverage": 0.9149214659685864,
+                  "typeCoverage": 0.8578680203045685
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1619,
+                  "distinct": 354,
+                  "tokenCoverage": 0.706369982547993,
+                  "typeCoverage": 0.44923857868020306
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1925,
+                  "distinct": 531,
+                  "tokenCoverage": 0.8398778359511344,
+                  "typeCoverage": 0.6738578680203046
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2178,
+                  "distinct": 723,
+                  "tokenCoverage": 0.9502617801047121,
+                  "typeCoverage": 0.9175126903553299
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 768,
+                  "distinct": 318,
+                  "tokenCoverage": 0.33507853403141363,
+                  "typeCoverage": 0.4035532994923858
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1077,
+                  "distinct": 481,
+                  "tokenCoverage": 0.4698952879581152,
+                  "typeCoverage": 0.6104060913705583
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2267,
+                  "distinct": 770,
+                  "tokenCoverage": 0.9890924956369983,
+                  "typeCoverage": 0.9771573604060914
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "holdout": {
+    "train": [
+      2010,
+      2021
+    ],
+    "test": [
+      2022,
+      2025
+    ],
+    "groups": {
+      "all": {
+        "eligible": 5524,
+        "outcomes": {
+          "exact": {
+            "total": 6446,
+            "types": 1288,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 5065,
+                  "distinct": 434,
+                  "tokenCoverage": 0.7857586099906919,
+                  "typeCoverage": 0.33695652173913043
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5526,
+                  "distinct": 668,
+                  "tokenCoverage": 0.8572758299720757,
+                  "typeCoverage": 0.5186335403726708
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5980,
+                  "distinct": 951,
+                  "tokenCoverage": 0.9277071051815079,
+                  "typeCoverage": 0.7383540372670807
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 5030,
+                  "distinct": 418,
+                  "tokenCoverage": 0.7803288861309339,
+                  "typeCoverage": 0.3245341614906832
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5534,
+                  "distinct": 667,
+                  "tokenCoverage": 0.858516909711449,
+                  "typeCoverage": 0.5178571428571429
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5965,
+                  "distinct": 933,
+                  "tokenCoverage": 0.9253800806701831,
+                  "typeCoverage": 0.7243788819875776
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 5070,
+                  "distinct": 429,
+                  "tokenCoverage": 0.7865342848278002,
+                  "typeCoverage": 0.3330745341614907
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5544,
+                  "distinct": 672,
+                  "tokenCoverage": 0.8600682593856656,
+                  "typeCoverage": 0.5217391304347826
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5978,
+                  "distinct": 943,
+                  "tokenCoverage": 0.9273968352466646,
+                  "typeCoverage": 0.7321428571428571
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 5058,
+                  "distinct": 432,
+                  "tokenCoverage": 0.7846726652187404,
+                  "typeCoverage": 0.33540372670807456
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5569,
+                  "distinct": 685,
+                  "tokenCoverage": 0.8639466335712069,
+                  "typeCoverage": 0.531832298136646
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5986,
+                  "distinct": 950,
+                  "tokenCoverage": 0.9286379149860379,
+                  "typeCoverage": 0.7375776397515528
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 5084,
+                  "distinct": 437,
+                  "tokenCoverage": 0.7887061743717034,
+                  "typeCoverage": 0.3392857142857143
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5552,
+                  "distinct": 675,
+                  "tokenCoverage": 0.8613093391250388,
+                  "typeCoverage": 0.5240683229813664
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5978,
+                  "distinct": 942,
+                  "tokenCoverage": 0.9273968352466646,
+                  "typeCoverage": 0.7313664596273292
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 5074,
+                  "distinct": 436,
+                  "tokenCoverage": 0.7871548246974868,
+                  "typeCoverage": 0.3385093167701863
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5564,
+                  "distinct": 681,
+                  "tokenCoverage": 0.8631709587340987,
+                  "typeCoverage": 0.5287267080745341
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5978,
+                  "distinct": 942,
+                  "tokenCoverage": 0.9273968352466646,
+                  "typeCoverage": 0.7313664596273292
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 5062,
+                  "distinct": 434,
+                  "tokenCoverage": 0.7852932050884269,
+                  "typeCoverage": 0.33695652173913043
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5565,
+                  "distinct": 685,
+                  "tokenCoverage": 0.8633260937015204,
+                  "typeCoverage": 0.531832298136646
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5978,
+                  "distinct": 942,
+                  "tokenCoverage": 0.9273968352466646,
+                  "typeCoverage": 0.7313664596273292
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 5005,
+                  "distinct": 425,
+                  "tokenCoverage": 0.7764505119453925,
+                  "typeCoverage": 0.3299689440993789
+                },
+                {
+                  "k": 1000,
+                  "tokens": 5520,
+                  "distinct": 676,
+                  "tokenCoverage": 0.8563450201675458,
+                  "typeCoverage": 0.5248447204968945
+                },
+                {
+                  "k": 2000,
+                  "tokens": 5987,
+                  "distinct": 974,
+                  "tokenCoverage": 0.9287930499534595,
+                  "typeCoverage": 0.7562111801242236
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 466,
+                  "distinct": 236,
+                  "tokenCoverage": 0.07229289481849209,
+                  "typeCoverage": 0.18322981366459629
+                },
+                {
+                  "k": 1000,
+                  "tokens": 750,
+                  "distinct": 392,
+                  "tokenCoverage": 0.11635122556624262,
+                  "typeCoverage": 0.30434782608695654
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1913,
+                  "distinct": 637,
+                  "tokenCoverage": 0.2967731926776295,
+                  "typeCoverage": 0.4945652173913043
+                }
+              ]
+            }
+          },
+          "estimated": {
+            "total": 8192,
+            "types": 1617,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 5851,
+                  "distinct": 451,
+                  "tokenCoverage": 0.7142333984375,
+                  "typeCoverage": 0.2789115646258503
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6567,
+                  "distinct": 730,
+                  "tokenCoverage": 0.8016357421875,
+                  "typeCoverage": 0.4514533085961657
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7269,
+                  "distinct": 1084,
+                  "tokenCoverage": 0.8873291015625,
+                  "typeCoverage": 0.6703772418058133
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 6032,
+                  "distinct": 459,
+                  "tokenCoverage": 0.736328125,
+                  "typeCoverage": 0.28385899814471244
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6752,
+                  "distinct": 770,
+                  "tokenCoverage": 0.82421875,
+                  "typeCoverage": 0.47619047619047616
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7397,
+                  "distinct": 1117,
+                  "tokenCoverage": 0.9029541015625,
+                  "typeCoverage": 0.6907854050711194
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 5992,
+                  "distinct": 458,
+                  "tokenCoverage": 0.7314453125,
+                  "typeCoverage": 0.28324056895485467
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6741,
+                  "distinct": 770,
+                  "tokenCoverage": 0.8228759765625,
+                  "typeCoverage": 0.47619047619047616
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7371,
+                  "distinct": 1106,
+                  "tokenCoverage": 0.8997802734375,
+                  "typeCoverage": 0.683982683982684
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 5923,
+                  "distinct": 457,
+                  "tokenCoverage": 0.7230224609375,
+                  "typeCoverage": 0.2826221397649969
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6769,
+                  "distinct": 778,
+                  "tokenCoverage": 0.8262939453125,
+                  "typeCoverage": 0.4811379097093383
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7365,
+                  "distinct": 1104,
+                  "tokenCoverage": 0.8990478515625,
+                  "typeCoverage": 0.6827458256029685
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 5995,
+                  "distinct": 464,
+                  "tokenCoverage": 0.7318115234375,
+                  "typeCoverage": 0.28695114409400124
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6745,
+                  "distinct": 767,
+                  "tokenCoverage": 0.8233642578125,
+                  "typeCoverage": 0.4743351886209029
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7366,
+                  "distinct": 1102,
+                  "tokenCoverage": 0.899169921875,
+                  "typeCoverage": 0.6815089672232529
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 5939,
+                  "distinct": 462,
+                  "tokenCoverage": 0.7249755859375,
+                  "typeCoverage": 0.2857142857142857
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6761,
+                  "distinct": 772,
+                  "tokenCoverage": 0.8253173828125,
+                  "typeCoverage": 0.4774273345701917
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7366,
+                  "distinct": 1102,
+                  "tokenCoverage": 0.899169921875,
+                  "typeCoverage": 0.6815089672232529
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 5923,
+                  "distinct": 459,
+                  "tokenCoverage": 0.7230224609375,
+                  "typeCoverage": 0.28385899814471244
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6763,
+                  "distinct": 776,
+                  "tokenCoverage": 0.8255615234375,
+                  "typeCoverage": 0.47990105132962274
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7366,
+                  "distinct": 1102,
+                  "tokenCoverage": 0.899169921875,
+                  "typeCoverage": 0.6815089672232529
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 5998,
+                  "distinct": 460,
+                  "tokenCoverage": 0.732177734375,
+                  "typeCoverage": 0.2844774273345702
+                },
+                {
+                  "k": 1000,
+                  "tokens": 6821,
+                  "distinct": 800,
+                  "tokenCoverage": 0.8326416015625,
+                  "typeCoverage": 0.49474335188620905
+                },
+                {
+                  "k": 2000,
+                  "tokens": 7535,
+                  "distinct": 1188,
+                  "tokenCoverage": 0.9197998046875,
+                  "typeCoverage": 0.7346938775510204
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 754,
+                  "distinct": 304,
+                  "tokenCoverage": 0.092041015625,
+                  "typeCoverage": 0.18800247371675943
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1176,
+                  "distinct": 507,
+                  "tokenCoverage": 0.1435546875,
+                  "typeCoverage": 0.313543599257885
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2612,
+                  "distinct": 813,
+                  "tokenCoverage": 0.31884765625,
+                  "typeCoverage": 0.5027829313543599
+                }
+              ]
+            }
+          }
+        }
+      },
+      "nonbasic": {
+        "eligible": 3952,
+        "outcomes": {
+          "exact": {
+            "total": 1626,
+            "types": 691,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1053,
+                  "distinct": 281,
+                  "tokenCoverage": 0.6476014760147601,
+                  "typeCoverage": 0.40665701881331406
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1253,
+                  "distinct": 410,
+                  "tokenCoverage": 0.7706027060270603,
+                  "typeCoverage": 0.5933429811866859
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1426,
+                  "distinct": 540,
+                  "tokenCoverage": 0.8769987699876999,
+                  "typeCoverage": 0.7814761215629522
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1060,
+                  "distinct": 284,
+                  "tokenCoverage": 0.6519065190651907,
+                  "typeCoverage": 0.4109985528219971
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1243,
+                  "distinct": 410,
+                  "tokenCoverage": 0.7644526445264452,
+                  "typeCoverage": 0.5933429811866859
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1431,
+                  "distinct": 543,
+                  "tokenCoverage": 0.8800738007380073,
+                  "typeCoverage": 0.7858176555716353
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1065,
+                  "distinct": 284,
+                  "tokenCoverage": 0.6549815498154982,
+                  "typeCoverage": 0.4109985528219971
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1268,
+                  "distinct": 419,
+                  "tokenCoverage": 0.7798277982779828,
+                  "typeCoverage": 0.6063675832127352
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1431,
+                  "distinct": 543,
+                  "tokenCoverage": 0.8800738007380073,
+                  "typeCoverage": 0.7858176555716353
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1074,
+                  "distinct": 294,
+                  "tokenCoverage": 0.6605166051660517,
+                  "typeCoverage": 0.42547033285094066
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1264,
+                  "distinct": 420,
+                  "tokenCoverage": 0.7773677736777368,
+                  "typeCoverage": 0.6078147612156295
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1431,
+                  "distinct": 543,
+                  "tokenCoverage": 0.8800738007380073,
+                  "typeCoverage": 0.7858176555716353
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1067,
+                  "distinct": 285,
+                  "tokenCoverage": 0.6562115621156211,
+                  "typeCoverage": 0.41244573082489144
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1268,
+                  "distinct": 419,
+                  "tokenCoverage": 0.7798277982779828,
+                  "typeCoverage": 0.6063675832127352
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1431,
+                  "distinct": 543,
+                  "tokenCoverage": 0.8800738007380073,
+                  "typeCoverage": 0.7858176555716353
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1074,
+                  "distinct": 292,
+                  "tokenCoverage": 0.6605166051660517,
+                  "typeCoverage": 0.42257597684515197
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1268,
+                  "distinct": 419,
+                  "tokenCoverage": 0.7798277982779828,
+                  "typeCoverage": 0.6063675832127352
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1431,
+                  "distinct": 543,
+                  "tokenCoverage": 0.8800738007380073,
+                  "typeCoverage": 0.7858176555716353
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1074,
+                  "distinct": 292,
+                  "tokenCoverage": 0.6605166051660517,
+                  "typeCoverage": 0.42257597684515197
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1268,
+                  "distinct": 419,
+                  "tokenCoverage": 0.7798277982779828,
+                  "typeCoverage": 0.6063675832127352
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1431,
+                  "distinct": 543,
+                  "tokenCoverage": 0.8800738007380073,
+                  "typeCoverage": 0.7858176555716353
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1083,
+                  "distinct": 299,
+                  "tokenCoverage": 0.6660516605166051,
+                  "typeCoverage": 0.43270622286541244
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1269,
+                  "distinct": 430,
+                  "tokenCoverage": 0.7804428044280443,
+                  "typeCoverage": 0.622286541244573
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1452,
+                  "distinct": 568,
+                  "tokenCoverage": 0.8929889298892989,
+                  "typeCoverage": 0.8219971056439942
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 376,
+                  "distinct": 209,
+                  "tokenCoverage": 0.23124231242312424,
+                  "typeCoverage": 0.3024602026049204
+                },
+                {
+                  "k": 1000,
+                  "tokens": 585,
+                  "distinct": 338,
+                  "tokenCoverage": 0.35977859778597787,
+                  "typeCoverage": 0.48914616497829233
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1389,
+                  "distinct": 586,
+                  "tokenCoverage": 0.8542435424354243,
+                  "typeCoverage": 0.8480463096960926
+                }
+              ]
+            }
+          },
+          "estimated": {
+            "total": 2328,
+            "types": 890,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1345,
+                  "distinct": 311,
+                  "tokenCoverage": 0.5777491408934707,
+                  "typeCoverage": 0.349438202247191
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1644,
+                  "distinct": 469,
+                  "tokenCoverage": 0.7061855670103093,
+                  "typeCoverage": 0.5269662921348315
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1945,
+                  "distinct": 648,
+                  "tokenCoverage": 0.8354810996563574,
+                  "typeCoverage": 0.7280898876404495
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1422,
+                  "distinct": 331,
+                  "tokenCoverage": 0.6108247422680413,
+                  "typeCoverage": 0.37191011235955057
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1704,
+                  "distinct": 495,
+                  "tokenCoverage": 0.7319587628865979,
+                  "typeCoverage": 0.5561797752808989
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2015,
+                  "distinct": 684,
+                  "tokenCoverage": 0.8655498281786942,
+                  "typeCoverage": 0.7685393258426966
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1406,
+                  "distinct": 324,
+                  "tokenCoverage": 0.6039518900343642,
+                  "typeCoverage": 0.36404494382022473
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1708,
+                  "distinct": 493,
+                  "tokenCoverage": 0.7336769759450171,
+                  "typeCoverage": 0.553932584269663
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2015,
+                  "distinct": 684,
+                  "tokenCoverage": 0.8655498281786942,
+                  "typeCoverage": 0.7685393258426966
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1432,
+                  "distinct": 336,
+                  "tokenCoverage": 0.6151202749140894,
+                  "typeCoverage": 0.3775280898876405
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1699,
+                  "distinct": 492,
+                  "tokenCoverage": 0.7298109965635738,
+                  "typeCoverage": 0.5528089887640449
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2015,
+                  "distinct": 684,
+                  "tokenCoverage": 0.8655498281786942,
+                  "typeCoverage": 0.7685393258426966
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1411,
+                  "distinct": 324,
+                  "tokenCoverage": 0.6060996563573883,
+                  "typeCoverage": 0.36404494382022473
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1705,
+                  "distinct": 492,
+                  "tokenCoverage": 0.7323883161512027,
+                  "typeCoverage": 0.5528089887640449
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2015,
+                  "distinct": 684,
+                  "tokenCoverage": 0.8655498281786942,
+                  "typeCoverage": 0.7685393258426966
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1432,
+                  "distinct": 335,
+                  "tokenCoverage": 0.6151202749140894,
+                  "typeCoverage": 0.37640449438202245
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1705,
+                  "distinct": 492,
+                  "tokenCoverage": 0.7323883161512027,
+                  "typeCoverage": 0.5528089887640449
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2015,
+                  "distinct": 684,
+                  "tokenCoverage": 0.8655498281786942,
+                  "typeCoverage": 0.7685393258426966
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1432,
+                  "distinct": 335,
+                  "tokenCoverage": 0.6151202749140894,
+                  "typeCoverage": 0.37640449438202245
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1705,
+                  "distinct": 492,
+                  "tokenCoverage": 0.7323883161512027,
+                  "typeCoverage": 0.5528089887640449
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2015,
+                  "distinct": 684,
+                  "tokenCoverage": 0.8655498281786942,
+                  "typeCoverage": 0.7685393258426966
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1514,
+                  "distinct": 359,
+                  "tokenCoverage": 0.6503436426116839,
+                  "typeCoverage": 0.40337078651685393
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1805,
+                  "distinct": 532,
+                  "tokenCoverage": 0.7753436426116839,
+                  "typeCoverage": 0.597752808988764
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2077,
+                  "distinct": 723,
+                  "tokenCoverage": 0.8921821305841925,
+                  "typeCoverage": 0.8123595505617978
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 600,
+                  "distinct": 262,
+                  "tokenCoverage": 0.25773195876288657,
+                  "typeCoverage": 0.2943820224719101
+                },
+                {
+                  "k": 1000,
+                  "tokens": 913,
+                  "distinct": 439,
+                  "tokenCoverage": 0.39218213058419243,
+                  "typeCoverage": 0.49325842696629213
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2012,
+                  "distinct": 746,
+                  "tokenCoverage": 0.8642611683848798,
+                  "typeCoverage": 0.8382022471910112
+                }
+              ]
+            }
+          }
+        }
+      },
+      "knownB": {
+        "eligible": 2793,
+        "outcomes": {
+          "exact": {
+            "total": 1522,
+            "types": 610,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1052,
+                  "distinct": 283,
+                  "tokenCoverage": 0.6911957950065704,
+                  "typeCoverage": 0.4639344262295082
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1259,
+                  "distinct": 414,
+                  "tokenCoverage": 0.8272010512483574,
+                  "typeCoverage": 0.6786885245901639
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1434,
+                  "distinct": 540,
+                  "tokenCoverage": 0.9421813403416557,
+                  "typeCoverage": 0.8852459016393442
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1061,
+                  "distinct": 286,
+                  "tokenCoverage": 0.6971090670170828,
+                  "typeCoverage": 0.46885245901639344
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1247,
+                  "distinct": 406,
+                  "tokenCoverage": 0.8193166885676741,
+                  "typeCoverage": 0.6655737704918033
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1429,
+                  "distinct": 541,
+                  "tokenCoverage": 0.9388961892247043,
+                  "typeCoverage": 0.8868852459016393
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1061,
+                  "distinct": 285,
+                  "tokenCoverage": 0.6971090670170828,
+                  "typeCoverage": 0.4672131147540984
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1263,
+                  "distinct": 419,
+                  "tokenCoverage": 0.8298291721419185,
+                  "typeCoverage": 0.6868852459016394
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1429,
+                  "distinct": 541,
+                  "tokenCoverage": 0.9388961892247043,
+                  "typeCoverage": 0.8868852459016393
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1078,
+                  "distinct": 296,
+                  "tokenCoverage": 0.7082785808147175,
+                  "typeCoverage": 0.4852459016393443
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1254,
+                  "distinct": 414,
+                  "tokenCoverage": 0.823915900131406,
+                  "typeCoverage": 0.6786885245901639
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1429,
+                  "distinct": 541,
+                  "tokenCoverage": 0.9388961892247043,
+                  "typeCoverage": 0.8868852459016393
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1068,
+                  "distinct": 291,
+                  "tokenCoverage": 0.7017082785808147,
+                  "typeCoverage": 0.47704918032786886
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1262,
+                  "distinct": 418,
+                  "tokenCoverage": 0.8291721419185283,
+                  "typeCoverage": 0.6852459016393443
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1429,
+                  "distinct": 541,
+                  "tokenCoverage": 0.9388961892247043,
+                  "typeCoverage": 0.8868852459016393
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1074,
+                  "distinct": 294,
+                  "tokenCoverage": 0.7056504599211564,
+                  "typeCoverage": 0.4819672131147541
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1262,
+                  "distinct": 418,
+                  "tokenCoverage": 0.8291721419185283,
+                  "typeCoverage": 0.6852459016393443
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1429,
+                  "distinct": 541,
+                  "tokenCoverage": 0.9388961892247043,
+                  "typeCoverage": 0.8868852459016393
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1076,
+                  "distinct": 294,
+                  "tokenCoverage": 0.7069645203679369,
+                  "typeCoverage": 0.4819672131147541
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1262,
+                  "distinct": 418,
+                  "tokenCoverage": 0.8291721419185283,
+                  "typeCoverage": 0.6852459016393443
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1429,
+                  "distinct": 541,
+                  "tokenCoverage": 0.9388961892247043,
+                  "typeCoverage": 0.8868852459016393
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1080,
+                  "distinct": 300,
+                  "tokenCoverage": 0.709592641261498,
+                  "typeCoverage": 0.4918032786885246
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1257,
+                  "distinct": 427,
+                  "tokenCoverage": 0.8258869908015769,
+                  "typeCoverage": 0.7
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1432,
+                  "distinct": 555,
+                  "tokenCoverage": 0.9408672798948752,
+                  "typeCoverage": 0.9098360655737705
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 381,
+                  "distinct": 212,
+                  "tokenCoverage": 0.2503285151116951,
+                  "typeCoverage": 0.3475409836065574
+                },
+                {
+                  "k": 1000,
+                  "tokens": 584,
+                  "distinct": 340,
+                  "tokenCoverage": 0.38370565045992117,
+                  "typeCoverage": 0.5573770491803278
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1485,
+                  "distinct": 584,
+                  "tokenCoverage": 0.9756898817345598,
+                  "typeCoverage": 0.9573770491803278
+                }
+              ]
+            }
+          },
+          "estimated": {
+            "total": 2180,
+            "types": 780,
+            "scores": {
+              "exact": [
+                {
+                  "k": 500,
+                  "tokens": 1343,
+                  "distinct": 311,
+                  "tokenCoverage": 0.6160550458715597,
+                  "typeCoverage": 0.39871794871794874
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1657,
+                  "distinct": 472,
+                  "tokenCoverage": 0.7600917431192661,
+                  "typeCoverage": 0.6051282051282051
+                },
+                {
+                  "k": 2000,
+                  "tokens": 1974,
+                  "distinct": 654,
+                  "tokenCoverage": 0.9055045871559633,
+                  "typeCoverage": 0.8384615384615385
+                }
+              ],
+              "estimated": [
+                {
+                  "k": 500,
+                  "tokens": 1414,
+                  "distinct": 330,
+                  "tokenCoverage": 0.6486238532110091,
+                  "typeCoverage": 0.4230769230769231
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1705,
+                  "distinct": 491,
+                  "tokenCoverage": 0.7821100917431193,
+                  "typeCoverage": 0.6294871794871795
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2017,
+                  "distinct": 682,
+                  "tokenCoverage": 0.9252293577981652,
+                  "typeCoverage": 0.8743589743589744
+                }
+              ],
+              "weighted": [
+                {
+                  "k": 500,
+                  "tokens": 1395,
+                  "distinct": 320,
+                  "tokenCoverage": 0.6399082568807339,
+                  "typeCoverage": 0.41025641025641024
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1701,
+                  "distinct": 491,
+                  "tokenCoverage": 0.7802752293577981,
+                  "typeCoverage": 0.6294871794871795
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2017,
+                  "distinct": 682,
+                  "tokenCoverage": 0.9252293577981652,
+                  "typeCoverage": 0.8743589743589744
+                }
+              ],
+              "years": [
+                {
+                  "k": 500,
+                  "tokens": 1427,
+                  "distinct": 335,
+                  "tokenCoverage": 0.6545871559633027,
+                  "typeCoverage": 0.42948717948717946
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1688,
+                  "distinct": 486,
+                  "tokenCoverage": 0.7743119266055046,
+                  "typeCoverage": 0.6230769230769231
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2017,
+                  "distinct": 682,
+                  "tokenCoverage": 0.9252293577981652,
+                  "typeCoverage": 0.8743589743589744
+                }
+              ],
+              "hybrid25": [
+                {
+                  "k": 500,
+                  "tokens": 1410,
+                  "distinct": 328,
+                  "tokenCoverage": 0.6467889908256881,
+                  "typeCoverage": 0.4205128205128205
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1699,
+                  "distinct": 490,
+                  "tokenCoverage": 0.7793577981651376,
+                  "typeCoverage": 0.6282051282051282
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2017,
+                  "distinct": 682,
+                  "tokenCoverage": 0.9252293577981652,
+                  "typeCoverage": 0.8743589743589744
+                }
+              ],
+              "hybrid50": [
+                {
+                  "k": 500,
+                  "tokens": 1421,
+                  "distinct": 332,
+                  "tokenCoverage": 0.6518348623853211,
+                  "typeCoverage": 0.4256410256410256
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1699,
+                  "distinct": 490,
+                  "tokenCoverage": 0.7793577981651376,
+                  "typeCoverage": 0.6282051282051282
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2017,
+                  "distinct": 682,
+                  "tokenCoverage": 0.9252293577981652,
+                  "typeCoverage": 0.8743589743589744
+                }
+              ],
+              "hybrid75": [
+                {
+                  "k": 500,
+                  "tokens": 1427,
+                  "distinct": 334,
+                  "tokenCoverage": 0.6545871559633027,
+                  "typeCoverage": 0.4282051282051282
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1699,
+                  "distinct": 490,
+                  "tokenCoverage": 0.7793577981651376,
+                  "typeCoverage": 0.6282051282051282
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2017,
+                  "distinct": 682,
+                  "tokenCoverage": 0.9252293577981652,
+                  "typeCoverage": 0.8743589743589744
+                }
+              ],
+              "mixed": [
+                {
+                  "k": 500,
+                  "tokens": 1503,
+                  "distinct": 358,
+                  "tokenCoverage": 0.6894495412844037,
+                  "typeCoverage": 0.45897435897435895
+                },
+                {
+                  "k": 1000,
+                  "tokens": 1789,
+                  "distinct": 528,
+                  "tokenCoverage": 0.8206422018348624,
+                  "typeCoverage": 0.676923076923077
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2043,
+                  "distinct": 705,
+                  "tokenCoverage": 0.9371559633027523,
+                  "typeCoverage": 0.9038461538461539
+                }
+              ],
+              "v2": [
+                {
+                  "k": 500,
+                  "tokens": 606,
+                  "distinct": 264,
+                  "tokenCoverage": 0.2779816513761468,
+                  "typeCoverage": 0.3384615384615385
+                },
+                {
+                  "k": 1000,
+                  "tokens": 925,
+                  "distinct": 437,
+                  "tokenCoverage": 0.4243119266055046,
+                  "typeCoverage": 0.5602564102564103
+                },
+                {
+                  "k": 2000,
+                  "tokens": 2111,
+                  "distinct": 739,
+                  "tokenCoverage": 0.968348623853211,
+                  "typeCoverage": 0.9474358974358974
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
