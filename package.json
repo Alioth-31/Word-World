@@ -14,7 +14,8 @@
     "android:apk": "cd android && ./gradlew assembleDebug",
     "android:assets": "capacitor-assets generate --android --assetPath assets --iconBackgroundColor \"#14272e\" --splashBackgroundColor \"#14272e\"",
     "preview": "node scripts/build-preview.cjs",
-    "build:refresh-data": "npm run data && npm run build"
+    "build:refresh-data": "npm run data && npm run build",
+    "data:exam1": "node scripts/build-exam1-frequency.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",

@@ -31,6 +31,16 @@ When at least 12 valid years of English I passages are explicitly added, the for
 
 [Supplementary sense notes](../data/sense-notes.json) are original Chinese learning notes informed by corresponding Cambridge Dictionary entries, not copied English definitions or exam quotations. Source meanings remain intact; the builder merges the notes during refresh.
 
+## Independent English I passage statistics
+
+`data/exam1-frequency.json` records statistics for all 5,530 entries from the 2010–2025 English I cloze visible text, four Reading Part A passages and translation passages. It excludes Part B, questions, options, explanations, writing and unfilled cloze answers. The pinned source revision and sixteen per-paper Git blob hashes are listed in [exam1-source.json](../data/exam1-source.json).
+
+Case-normalized exact matches and unique-candidate rule-based inflection estimates are recorded separately; case-distinct entries retain their literal spelling. Phrase matches may overlap constituent words and do not cross paragraph or punctuation boundaries. Only unmatched forms are candidates for inference, and competing dictionary candidates remain unmatched. These are not POS- or sense-disambiguated lemma counts. Both ranks use competition ranking among positive counts; unobserved words have null ranks. Annual entries are stored as [exact, inferred] counts.
+
+The dataset contains 38,035 passage tokens: 26,674 exact matches, 6,686 inferred matches and 4,675 unmatched tokens, plus 20 overlapping phrase matches. Only derived counts are stored, not exam passages or explanations. The statistics do not yet affect the app or the V2 importance formula.
+
+To reproduce, place the [pinned corpus revision](https://github.com/LIziak112/structured-kaoyan-english/tree/ce0e9ac7c48e74738ffaeb04ff7033e69ea314c9) in `sources/structured-kaoyan-english`, then run `npm run data:exam1` (or `npm run data:exam1 -- /path/to/corpus`). The script checks each file's Git blob SHA-1 and validates the expected passage structure. The upstream corpus is unofficial and may contain transcription errors.
+
 ## Third-party sources
 
 | Source | Use | Stated license and limitations |
