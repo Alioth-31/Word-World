@@ -206,3 +206,34 @@ body { background:#e9e5dc; }
 
 /* Learning-order control in the daily view. */
 .today-order-row{margin-top:16px;padding:9px 0;border-bottom:1px solid #ddd8cf}.today-order-row select{max-width:70%;text-align:right}
+
+/* Personal learning controls reuse the existing neutral palette. */
+.personal-note {font-size:12px;line-height:1.6;margin:8px 0;color:inherit;}
+.personal-skip {display:block;width:100%;margin-top:9px;padding:9px 8px;border:0;background:transparent;color:inherit;font-size:13px;text-decoration:underline;text-underline-offset:3px;}
+.personal-skip[hidden],#detail-known[hidden] {display:none;}
+.detail-personal-note {font-size:12px;line-height:1.6;margin:0;padding:8px 23px;color:#69675e;background:#faf8f2;}
+.detail-bottom {display:flex;gap:8px;align-items:center;}
+.detail-bottom button {flex:1;min-width:0;}
+#detail-known {font-size:13px;text-decoration:underline;text-underline-offset:3px;}
+
+.diagnostic-entry {border-top:1px solid currentColor;padding:12px 0;margin:10px 0;}
+.diagnostic-entry button {font:inherit;color:inherit;background:transparent;border:0;padding:5px 0;text-decoration:underline;text-underline-offset:3px;}
+.diagnostic-entry button:disabled {opacity:.45;}
+.diagnostic-entry span,.diagnostic-entry p {display:block;font-size:12px;line-height:1.6;margin:4px 0;}
+.diagnostic-ratings {grid-template-columns:repeat(3,minmax(0,1fr));}
+.diagnostic-ratings[hidden] {display:none;}
+
+.ability-shell {position:fixed;inset:0;z-index:45;background:#faf8f2;color:#253a33;overflow:auto;padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(24px + env(safe-area-inset-bottom,0px));}
+.ability-panel {max-width:540px;margin:auto;display:grid;gap:14px;}
+.ability-panel h2 {font-size:clamp(21px,5vw,29px);line-height:1.45;margin:6px 0;overflow-wrap:anywhere;}
+.ability-panel p {line-height:1.6;margin:0;}
+.ability-panel button,.ability-panel input {font:inherit;padding:12px;border:1px solid #c8c3b7;background:transparent;color:inherit;border-radius:0;}
+.ability-panel button {text-align:left;cursor:pointer;min-height:44px;}
+.ability-panel button:disabled {opacity:.62;cursor:default;}
+.ability-options {display:grid;gap:8px;}
+#ability-form {display:grid;gap:8px;}
+#ability-form[hidden],#ability-next[hidden] {display:none;}
+.ability-stats {font-size:13px;line-height:1.7;}
+.ability-stats p {padding:8px 0;border-bottom:1px solid #ddd8cd;margin:0;}
+
+#view-records [hidden],#view-library [hidden]{display:none!important}#level-filters [data-level="cet6"]{display:none}

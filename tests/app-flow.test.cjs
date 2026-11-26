@@ -5,15 +5,17 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname,'..');
-function setup(){
+function setup(initialState){
  const html=fs.readFileSync(path.join(root,'app/index.html'),'utf8');
  const keys=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);
  class ClassList{constructor(xs=[]){this.set=new Set(xs)}add(s){this.set.add(s)}remove(s){this.set.delete(s)}contains(s){return this.set.has(s)}toggle(s,v){if(v===undefined)v=!this.contains(s);if(v)this.add(s);else this.remove(s);return v}}
  class El {
-   constructor(id=''){this.id=id;this.style={};this.hidden=false;this.classList=new ClassList();this.dataset={};this.events={};this.children=[];this.value='';this.innerHTML='';this.textContent='';this.firstChild={textContent:''};this.checked=false;this.scrollTop=0;}
+   constructor(id=''){this.id=id;this.parentElement={setAttribute(){}};this.style={setProperty(key,value){this[key]=value}};this.hidden=false;this.classList=new ClassList();this.dataset={};this.events={};this.children=[];this.value='';this.innerHTML='';this.textContent='';this.firstChild={textContent:''};this.checked=false;this.scrollTop=0;}
    addEventListener(type,fn){(this.events[type]||=[]).push(fn)}
    dispatch(type,ev={}){for(const fn of this.events[type]||[])fn({target:this,preventDefault(){},...ev})}
    appendChild(el){this.children.push(el)}
+   append(...els){this.children.push(...els)}
+   querySelectorAll(){return []}
    replaceChildren(){this.children=[]}
    setAttribute(key,val){this[key]=val}
    focus(){}
@@ -21,17 +23,17 @@ function setup(){
    remove(){}
    click(){this.dispatch('click')}
    closest(){return this}
-   querySelector(sel){return sel==='.is-selected'?chips.find(c=>c.classList.contains('is-selected')):null}
+   querySelector(sel){return sel==='.is-selected'?chips.find(c=>c.classList.contains('is-selected')):sel==='i'?new El():null}
  }
  const els=new Map(keys.map(k=>[k,new El(k)]));
  const nav=['today','library','records'].map(page=>{const e=new El();e.dataset.page=page;return e});
- const chips=['all','P0','P1','P2','P3','cet6','saved'].map(level=>{const e=new El();e.dataset.level=level;if(level==='all')e.classList.add('is-selected');return e});
+ const chips=['all','P0','P1','P2','P3','cet6','saved','pending','known','weak'].map(level=>{const e=new El();e.dataset.level=level;if(level==='all')e.classList.add('is-selected');return e});
  for(const k of ['study-shell','detail-shell','finish-shell','rating-buttons','reveal-content'])els.get(k).classList.add('is-hidden');
- const local=new Map();
+ const local=new Map(initialState?[['wordworld_state_v1',JSON.stringify(initialState)]]:[]);
  const doc={
    getElementById:k=>{assert.ok(els.has(k),'missing ID in HTML: '+k);return els.get(k)},
    querySelectorAll:s=>s==='.nav-link'?nav:s==='.filter-chip'?chips:[],
-   createElement:t=>new El(t),createDocumentFragment:()=>new El('fragment'),
+   createElement:t=>new El(t),createTextNode:t=>({textContent:t}),createDocumentFragment:()=>new El('fragment'),
    documentElement:{classList:new ClassList(),style:{}},
    addEventListener(type,fn){this.events||(this.events={});this.events[type]=fn},
    body:new El('body')
@@ -40,7 +42,7 @@ function setup(){
  const win={WORD_WORLD_VOCAB:[],WORD_WORLD_META:null,StudyScheduler:null,scrollTo(){},addEventListener(){},Capacitor:null};
  const ctx=vm.createContext({window:win,document:doc,localStorage,Date,Intl,console,navigator:{vibrate(){}},setTimeout:fn=>{fn();return 1},clearTimeout(){},Blob,URL,TextEncoder,SpeechSynthesisUtterance:class {},confirm:()=>true});
  const js=f=>vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),ctx,{filename:f});
- js('app/data/vocabulary.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
+ js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/content.js');js('app/data/abilities.js');js('app/data/exam-senses.js');js('app/js/abilities.js');js('app/js/learning-policy.js');js('app/js/adaptive-learning.js');js('app/js/word-lesson.js');js('app/js/word-lesson-ui.js');js('app/js/word-lesson-bridge.js');js('app/js/exam-priority.js');js('app/js/study-analysis.js');js('app/js/study-analysis-ui.js');js('app/js/football-season.js');js('app/js/football-ui.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
  els.get('library-order').value='priority';els.get('search-words').value='';
  js('app/js/app.js');
  return {els,doc,win,local,nav,chips};
@@ -131,7 +133,7 @@ test('forgotten words recur once in the same session',()=>{
  assert.equal(els.get('finish-shell').classList.contains('is-hidden'),false);
  assert.equal(els.get('finish-count').textContent,'2');
  const state=JSON.parse(local.get('wordworld_state_v1'));
- assert.equal(state.progress.abandon.reviews,2);
+ assert.equal(state.progress.abandon.reviews,1);assert.equal(state.progress.abandon.lastRating,'again');
 });
 
 test('importance and frequency sorting are independent in the vocabulary browser',()=>{
@@ -191,5 +193,331 @@ test('dictionary details distinguish importance rank from source frequency rank'
  nav[1].dispatch('click');
  els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word:'the'}})}});
  const source=win.WORD_WORLD_VOCAB.find(w=>w.word==='the');
- assert.ok(els.get('detail-priority').textContent.includes(`重要性 #${source.priority.rank} · 来源词频 #${source.priority.frequencyRank}（${source.frequency.toLocaleString('en-US')} 次）`));
+ assert.ok(els.get('detail-data-summary').textContent.includes(`综合重要性 #${source.priority.rank}`));
+});
+
+test('English I order controls the library and next new word independently',()=>{
+ const {els,win,local}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ const rows=win.WORD_WORLD_EXAM1.rows, top=rows.find(r=>r[4]===1);
+ assert.ok(top);
+ els.get('library-order').value='exam1';
+ els.get('library-order').dispatch('change');
+ const row=els.get('word-list').children[0].children[0];
+ assert.equal(row.dataset.word,top[0]);
+ assert.match(row.innerHTML,/英语一估计词频 #1/);
+ els.get('today-study-order').value='exam1';
+ els.get('today-study-order').dispatch('change');
+ assert.equal(els.get('study-order').value,'exam1');
+ assert.equal(JSON.parse(local.get('wordworld_state_v1')).prefs.studyOrder,'exam1');
+ els.get('start-review').click();
+ assert.equal(els.get('study-word').textContent,top[0]);
+});
+
+test('known words are reversible, excluded from new study, and distinct from learned words',()=>{
+ const {els,win,local,nav,chips}=setup();
+ const word=win.WORD_WORLD_VOCAB[0].word;
+ nav[1].click();
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ els.get('detail-known').click();
+ let state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.known[word],true);
+ assert.equal(Object.keys(state.progress).length,0);
+ els.get('close-detail').click();
+ const known=chips.find(c=>c.dataset.level==='known');
+ els.get('level-filters').dispatch('click',{target:known});
+ assert.equal(els.get('library-count').textContent,'1 词');
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ els.get('detail-known').click();
+ assert.equal(els.get('library-count').textContent,'0 词');
+ state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(state.known).length,0);
+});
+test('skipping a familiar new word replaces it without counting it as learned or reviewed',()=>{
+ const {els,win,local}=setup();
+ els.get('start-review').click();
+ const first=els.get('study-word').textContent;
+ els.get('reveal-answer').click();
+ assert.equal(els.get('study-known').hidden,false);
+ els.get('study-known').click();
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.known[first],true);
+ assert.equal(Object.keys(state.progress).length,0);
+ assert.equal(Object.values(state.daily)[0].new,0);
+ assert.equal(Object.values(state.daily)[0].reviews,0);
+ assert.ok(els.get('study-word').textContent!==first);
+ const restored=setup(state);
+ restored.els.get('start-review').click();
+ assert.ok(restored.els.get('study-word').textContent!==first);
+});
+test('CET6 focus prioritizes overlapping words and persists separately from review state',()=>{
+ const {els,win,local}=setup();
+ if(win.WORD_WORLD_META.sample)return;
+ els.get('study-focus').value='cet6';
+ els.get('study-focus').dispatch('change');
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.prefs.focus,'cet6');
+ assert.equal(state.prefs.studyOrder,'personal');
+ els.get('start-review').click();
+ const word=els.get('study-word').textContent;
+ assert.ok(win.WORD_WORLD_VOCAB.find(w=>w.word===word).tags.includes('六级'));
+});
+test('old records load without known status and existing learned words cannot be excluded',()=>{
+ const {els,local}=setup();
+ els.get('start-review').click();
+ const word=els.get('study-word').textContent;
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ delete state.known;delete state.prefs.focus;
+ const restored=setup(state);
+ restored.nav[1].click();
+ restored.els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ assert.equal(restored.els.get('detail-known').hidden,true);
+ restored.els.get('detail-known').click();
+ assert.equal(restored.els.get('detail-known').hidden,true);
+});
+
+test('diagnostic samples 12 distinct words across the full priority range without writing review records',()=>{
+ const {els,win,local}=setup();
+ const ordered=[...win.WORD_WORLD_VOCAB].sort((a,b)=>(a.priority?.rank??99999)-(b.priority?.rank??99999)||a.word.localeCompare(b.word,'en'));
+ const ranks=new Map(ordered.map((w,i)=>[w.word,Math.floor(i*4/ordered.length)]));
+ els.get('start-diagnostic').click();
+ const words=[],groups=new Set();
+ for(let i=0;i<12;i++){
+  const word=els.get('study-word').textContent;
+  words.push(word);groups.add(ranks.get(word));
+  els.get('reveal-answer').click();
+  assert.equal(els.get('diagnostic-buttons').hidden,false);
+  assert.equal(els.get('rating-buttons').classList.contains('is-hidden'),true);
+  // A regular study rating cannot bypass the diagnostic workflow.
+  els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'easy'}})}});
+  els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:i===0?'unknown':i===1?'partial':'accurate'}})}});
+ }
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(new Set(words).size,12);
+ assert.equal(groups.size,4);
+ assert.equal(Object.keys(state.progress).length,0);
+ assert.equal(Object.keys(state.diagnostic).length,12);
+ assert.equal(Object.keys(state.known).length,10);
+ assert.equal(Object.values(state.daily)[0].new,0);
+ assert.equal(Object.values(state.daily)[0].reviews,0);
+ assert.equal(state.prefs.studyOrder,'personal');
+ assert.match(els.get('finish-summary').textContent,/不认识 1，部分认识 1，自评准确 10/);
+ els.get('finish-home').click();
+ els.get('start-diagnostic').click();
+ assert.ok(!words.includes(els.get('study-word').textContent));
+});
+test('diagnostic weaknesses feed personal learning, then leave the pending queue after normal rating',()=>{
+ const {els,local,nav,chips}=setup();
+ els.get('start-diagnostic').click();
+ const word=els.get('study-word').textContent;
+ els.get('reveal-answer').click();
+ els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:'unknown'}})}});
+ els.get('leave-study').click();
+ nav[1].click();
+ els.get('level-filters').dispatch('click',{target:chips.find(c=>c.dataset.level==='weak')});
+ assert.equal(els.get('library-count').textContent,'1 词');
+ nav[0].click();
+ els.get('start-review').click();
+ assert.equal(els.get('study-word').textContent,word);
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ els.get('leave-study').click();
+ nav[1].click();
+ assert.equal(els.get('library-count').textContent,'0 词');
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(state.progress).length,1);
+ assert.equal(Object.keys(state.diagnostic).length,1);
+ assert.equal(Object.values(state.daily)[0].new,1);
+});
+test('a previously self-reported familiar word can be reclassified by diagnostic evidence',()=>{
+ const base=setup(), ordered=[...base.win.WORD_WORLD_VOCAB].sort((a,b)=>(a.priority?.rank??99999)-(b.priority?.rank??99999)||a.word.localeCompare(b.word,'en'));
+ base.els.get('start-diagnostic').click();
+ const word=base.els.get('study-word').textContent;
+ const state={schema:3,progress:{},saved:{},known:{[word]:true},prefs:{goal:20},daily:{}};
+ const {els,local}=setup(state);
+ els.get('start-diagnostic').click();
+ assert.equal(els.get('study-word').textContent,word);
+ els.get('reveal-answer').click();
+ els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:'partial'}})}});
+ const next=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(next.known).length,0);
+ assert.equal(next.diagnostic[word],'partial');
+});
+test('older backups preserve their scheduled reviews and ignore invalid diagnostic records',()=>{
+ const base=setup();
+ base.els.get('start-review').click();
+ const word=base.els.get('study-word').textContent;
+ base.els.get('reveal-answer').click();
+ base.els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ const state=JSON.parse(base.local.get('wordworld_state_v1'));
+ state.diagnostic={bogus:'unknown',[word]:'invalid'};
+ const restored=setup(state);
+ restored.els.get('start-diagnostic').click();
+ assert.ok(restored.els.get('study-word').textContent!==word);
+ restored.els.get('reveal-answer').click();
+ restored.els.get('diagnostic-buttons').dispatch('click',{target:{closest:()=>({dataset:{diagnostic:'partial'}})}});
+ const next=JSON.parse(restored.local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(next.progress).length,1);
+ assert.equal(Object.keys(next.diagnostic).length,1);
+});
+
+test('content catalog stores overlapping word entries only once and retains legacy progress IDs',()=>{
+ const {win}=setup();
+ const catalog=win.WordWorldContent;
+ assert.equal(catalog.allWords.length,win.WORD_WORLD_VOCAB.length);
+ assert.equal(catalog.book('netem').words.length,catalog.allWords.length);
+ const overlap=catalog.book('cet6-overlap').words;
+ if(catalog.normalizeBook('cet6-overlap')==='cet6-overlap'){
+  assert.ok(overlap.length<catalog.allWords.length);
+  assert.ok(overlap.every(w=>w.tags.includes('六级')&&catalog.getWord(w.word)===w));
+  assert.equal(catalog.book('cet6-overlap').complete,false);
+ }
+ assert.equal(catalog.wordKey('May'),'May');
+ assert.equal(catalog.wordKey('may'),'may');
+ assert.equal(catalog.normalizeBook('uninstalled'),'netem');
+});
+test('book switching changes new-word, browse and diagnostic scope and persists',()=>{
+ const {els,win,local,nav}=setup();
+ const catalog=win.WordWorldContent;
+ if(catalog.normalizeBook('cet6-overlap')!=='cet6-overlap')return;
+ const overlap=catalog.book('cet6-overlap').words;
+ els.get('today-book').value='cet6-overlap';
+ els.get('today-book').dispatch('change');
+ assert.match(els.get('home-total').innerHTML,new RegExp(String(overlap.length)));
+ assert.equal(els.get('settings-book').value,'cet6-overlap');
+ nav[1].click();
+ assert.equal(els.get('library-count').textContent,overlap.length+' 词');
+ assert.equal(els.get('library-book').value,'cet6-overlap');
+ nav[0].click();
+ els.get('start-diagnostic').click();
+ assert.ok(catalog.getWord(els.get('study-word').textContent).tags.includes('六级'));
+ els.get('leave-study').click();
+ els.get('start-review').click();
+ assert.ok(catalog.getWord(els.get('study-word').textContent).tags.includes('六级'));
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ const restored=setup(state);
+ assert.equal(restored.els.get('today-book').value,'cet6-overlap');
+});
+test('shared learning state survives book switching and global reviews include other books',()=>{
+ const {els,win,local,nav}=setup();
+ const catalog=win.WordWorldContent;
+ if(catalog.normalizeBook('cet6-overlap')!=='cet6-overlap')return;
+ const word=catalog.book('cet6-overlap').words[0].word;
+ const other=catalog.allWords.find(w=>!w.tags?.includes('六级')).word;
+ nav[1].click();
+ els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word}})}});
+ els.get('detail-start').click();
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ els.get('finish-home').click();
+ els.get('today-book').value='cet6-overlap';
+ els.get('today-book').dispatch('change');
+ assert.match(els.get('home-book-progress').textContent,/已学习 1 词/);
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(Object.keys(state.progress).length,1);
+ // Use a genuine review record template, but set the nonmember's due date in the past.
+ state.progress[catalog.wordKey(other)]={...state.progress[catalog.wordKey(word)],due:'2000-01-01T00:00:00.000Z'};
+ const restored=setup(state);
+ restored.els.get('start-review').click();
+ assert.equal(restored.els.get('study-word').textContent,other);
+ assert.equal(restored.els.get('study-mode-label').textContent,'到期复习');
+});
+test('old backups default to the original book without changing study state',()=>{
+ const {els,local}=setup();
+ els.get('start-review').click();
+ els.get('reveal-answer').click();
+ els.get('rating-buttons').dispatch('click',{target:{closest:()=>({dataset:{rating:'good'}})}});
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ delete state.prefs.book;
+ const restored=setup(state);
+ assert.equal(restored.els.get('today-book').value,'netem');
+ restored.nav[2].click();
+ assert.equal(restored.els.get('records-learned').textContent,1);
+});
+
+test('ability exercises use objective answers, separate memory, and immediate feedback',()=>{
+ const {els,win,local}=setup();
+ const model=win.WordWorldAbilities;
+ const first=model.queue({},win.WordWorldContent.allWords,new Date())[0];
+ if(!first)return;
+ els.get('start-ability').click();
+ const q=model.variant(first,null);
+ const wrong=(q.correct+1)%q.options.length;
+ els.get('ability-options').children[wrong].click();
+ const state=JSON.parse(local.get('wordworld_state_v1'));
+ assert.equal(state.abilities[first.id].lastCorrect,false);
+ assert.equal(state.abilities[first.id].attempts,1);
+ assert.equal(Object.keys(state.progress).length,0);
+ assert.match(els.get('ability-feedback').textContent,/正确答案/);
+ els.get('ability-options').children[wrong].click();
+ assert.equal(JSON.parse(local.get('wordworld_state_v1')).abilities[first.id].attempts,1);
+ els.get('ability-next').click();
+ assert.ok(els.get('ability-progress').textContent.includes('2/'));
+ els.get('ability-close').click();
+ const restored=setup(state);
+ assert.ok(restored.win.WordWorldAbilities.summary(state.abilities,restored.win.WordWorldContent.allWords,new Date()).some(s=>s.weak===1));
+});
+test('ability retesting changes context, selects due tasks, and preserves first attempt evidence',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities,words=win.WordWorldContent.allWords;
+ const item=m.bank.find(q=>q.skill==='context');if(!item)return;
+ const q=m.variant(item,null),now=new Date('2026-01-01T00:00:00Z');
+ const r=m.record(item,null,(q.correct+1)%q.options.length,now,win.StudyScheduler);
+ const later=new Date(Date.parse(r.memory.due)+1000);
+ const records={[item.id]:r};
+ assert.equal(m.queue(records,words,later)[0].id,item.id);
+ const alternate=m.variant(item,r);assert.ok(alternate.prompt!==q.prompt);
+ const next=m.record(item,r,alternate.correct,later,win.StudyScheduler);
+ assert.equal(next.attempts,2);assert.equal(next.firstCorrect,false);assert.equal(next.lastCorrect,true);
+ assert.equal(next.correct,1);
+ assert.equal(m.summary({[item.id]:next},words,later).find(s=>s.skill==='context').weak,0);
+});
+test('spelling uses normalized typed answers rather than choices',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities,item=m.bank.find(x=>x.skill==='spelling');if(!item)return;
+ const q=m.variant(item,null);
+ assert.equal(m.check(q,' '+q.answer.toUpperCase()+' '),true);
+ assert.equal(m.check(q,q.answer+'x'),false);
+ assert.equal(m.check(q,0),false);
+});
+test('ability exercises remain separate from word learning across books and backups',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities,words=win.WordWorldContent.allWords;
+ const item=m.bank.find(x=>!win.WordWorldContent.getWord(x.word).tags?.includes('六级'));if(!item)return;
+ const q=m.variant(item,null),now=new Date('2025-01-01T00:00:00Z');
+ const r=m.record(item,null,q.options?q.correct:q.answer,now,win.StudyScheduler);
+ const stored={schema:3,progress:{},saved:{},prefs:{book:'cet6-overlap'},daily:{},abilities:{[item.id]:r,bogus:r}};
+ const restored=setup(stored);
+ assert.equal(Object.keys(m.normalize(stored.abilities)).length,1);
+ assert.ok(!m.queue(stored.abilities,win.WordWorldContent.book('cet6-overlap').words,new Date()).some(x=>x.id===item.id));
+ restored.els.get('start-ability-review').click();
+ assert.ok(restored.els.get('ability-prompt').textContent.length>0);
+ assert.equal(restored.els.get('ability-shell').classList.contains('is-hidden'),false);
+});
+test('pilot bank has unique IDs, two distinct variants and internally valid answer keys',()=>{
+ const {win}=setup(),m=win.WordWorldAbilities;
+ assert.equal(new Set(m.bank.map(x=>x.id)).size,m.bank.length);
+ for(const item of m.bank){
+  assert.equal(item.variants.length,2);
+  assert.ok(item.variants[0].prompt!==item.variants[1].prompt);
+  for(const q of item.variants){
+   if(q.options){assert.equal(new Set(q.options).size,4);assert.ok(q.correct>=0&&q.correct<4)}
+   else assert.ok(typeof q.answer==='string'&&q.answer.length>0);
+  }
+ }
+});
+
+
+test('primary short lesson uses full dictionary, records first recall and retains the lapse through repair',()=>{
+ const {els,local,win}=setup();
+ assert.equal(win.WordWorldContent.allWords.length,5530);
+ assert.equal(win.WordWorldAbilities.bank.length,41);
+ els.get('vocab-start').click();
+ assert.equal(els.get('wl-shell').hidden,false);
+ const word=els.get('wl-word').textContent;
+ assert.ok(win.WordWorldContent.getWord(word));
+ els.get('wl-reveal').onclick();
+ els.get('wl-ratings').onclick({target:{closest:()=>({dataset:{wlRating:'again'}})}});
+ const s=JSON.parse(local.get('wordworld_state_v1')),key=win.WordWorldContent.wordKey(word);
+ assert.equal(s.progress[key].lastRating,'again');assert.equal(s.evidence.filter(e=>e.kind==='word'&&e.id===key).length,1);assert.equal(s.daily[Object.keys(s.daily)[0]].new,1);
+ els.get('wl-close').onclick();assert.equal(els.get('wl-shell').hidden,true);
 });
