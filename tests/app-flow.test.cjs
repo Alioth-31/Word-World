@@ -10,10 +10,12 @@ function setup(initialState){
  const keys=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);
  class ClassList{constructor(xs=[]){this.set=new Set(xs)}add(s){this.set.add(s)}remove(s){this.set.delete(s)}contains(s){return this.set.has(s)}toggle(s,v){if(v===undefined)v=!this.contains(s);if(v)this.add(s);else this.remove(s);return v}}
  class El {
-   constructor(id=''){this.id=id;this.style={};this.hidden=false;this.classList=new ClassList();this.dataset={};this.events={};this.children=[];this.value='';this.innerHTML='';this.textContent='';this.firstChild={textContent:''};this.checked=false;this.scrollTop=0;}
+   constructor(id=''){this.id=id;this.parentElement={setAttribute(){}};this.style={setProperty(key,value){this[key]=value}};this.hidden=false;this.classList=new ClassList();this.dataset={};this.events={};this.children=[];this.value='';this.innerHTML='';this.textContent='';this.firstChild={textContent:''};this.checked=false;this.scrollTop=0;}
    addEventListener(type,fn){(this.events[type]||=[]).push(fn)}
    dispatch(type,ev={}){for(const fn of this.events[type]||[])fn({target:this,preventDefault(){},...ev})}
    appendChild(el){this.children.push(el)}
+   append(...els){this.children.push(...els)}
+   querySelectorAll(){return []}
    replaceChildren(){this.children=[]}
    setAttribute(key,val){this[key]=val}
    focus(){}
@@ -21,7 +23,7 @@ function setup(initialState){
    remove(){}
    click(){this.dispatch('click')}
    closest(){return this}
-   querySelector(sel){return sel==='.is-selected'?chips.find(c=>c.classList.contains('is-selected')):null}
+   querySelector(sel){return sel==='.is-selected'?chips.find(c=>c.classList.contains('is-selected')):sel==='i'?new El():null}
  }
  const els=new Map(keys.map(k=>[k,new El(k)]));
  const nav=['today','library','records'].map(page=>{const e=new El();e.dataset.page=page;return e});
@@ -31,7 +33,7 @@ function setup(initialState){
  const doc={
    getElementById:k=>{assert.ok(els.has(k),'missing ID in HTML: '+k);return els.get(k)},
    querySelectorAll:s=>s==='.nav-link'?nav:s==='.filter-chip'?chips:[],
-   createElement:t=>new El(t),createDocumentFragment:()=>new El('fragment'),
+   createElement:t=>new El(t),createTextNode:t=>({textContent:t}),createDocumentFragment:()=>new El('fragment'),
    documentElement:{classList:new ClassList(),style:{}},
    addEventListener(type,fn){this.events||(this.events={});this.events[type]=fn},
    body:new El('body')
@@ -40,7 +42,7 @@ function setup(initialState){
  const win={WORD_WORLD_VOCAB:[],WORD_WORLD_META:null,StudyScheduler:null,scrollTo(){},addEventListener(){},Capacitor:null};
  const ctx=vm.createContext({window:win,document:doc,localStorage,Date,Intl,console,navigator:{vibrate(){}},setTimeout:fn=>{fn();return 1},clearTimeout(){},Blob,URL,TextEncoder,SpeechSynthesisUtterance:class {},confirm:()=>true});
  const js=f=>vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),ctx,{filename:f});
- js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/content.js');js('app/data/abilities.js');js('app/js/abilities.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
+ js('app/data/vocabulary.js');js('app/data/exam1.js');js('app/js/content.js');js('app/data/abilities.js');js('app/data/exam-senses.js');js('app/js/abilities.js');js('app/js/learning-policy.js');js('app/js/adaptive-learning.js');js('app/js/word-lesson.js');js('app/js/word-lesson-ui.js');js('app/js/word-lesson-bridge.js');js('app/js/exam-priority.js');js('app/js/study-analysis.js');js('app/js/study-analysis-ui.js');js('app/js/football-season.js');js('app/js/football-ui.js');js('app/js/srs-fallback.js');js('app/js/fsrs-engine.js');
  els.get('library-order').value='priority';els.get('search-words').value='';
  js('app/js/app.js');
  return {els,doc,win,local,nav,chips};
@@ -131,7 +133,7 @@ test('forgotten words recur once in the same session',()=>{
  assert.equal(els.get('finish-shell').classList.contains('is-hidden'),false);
  assert.equal(els.get('finish-count').textContent,'2');
  const state=JSON.parse(local.get('wordworld_state_v1'));
- assert.equal(state.progress.abandon.reviews,2);
+ assert.equal(state.progress.abandon.reviews,1);assert.equal(state.progress.abandon.lastRating,'again');
 });
 
 test('importance and frequency sorting are independent in the vocabulary browser',()=>{
@@ -191,7 +193,7 @@ test('dictionary details distinguish importance rank from source frequency rank'
  nav[1].dispatch('click');
  els.get('word-list').dispatch('click',{target:{closest:()=>({dataset:{word:'the'}})}});
  const source=win.WORD_WORLD_VOCAB.find(w=>w.word==='the');
- assert.ok(els.get('detail-priority').textContent.includes(`重要性 #${source.priority.rank} · 来源词频 #${source.priority.frequencyRank}（${source.frequency.toLocaleString('en-US')} 次）`));
+ assert.ok(els.get('detail-data-summary').textContent.includes(`综合重要性 #${source.priority.rank}`));
 });
 
 test('English I order controls the library and next new word independently',()=>{
@@ -502,4 +504,20 @@ test('pilot bank has unique IDs, two distinct variants and internally valid answ
    else assert.ok(typeof q.answer==='string'&&q.answer.length>0);
   }
  }
+});
+
+
+test('primary short lesson uses full dictionary, records first recall and retains the lapse through repair',()=>{
+ const {els,local,win}=setup();
+ assert.equal(win.WordWorldContent.allWords.length,5530);
+ assert.equal(win.WordWorldAbilities.bank.length,41);
+ els.get('vocab-start').click();
+ assert.equal(els.get('wl-shell').hidden,false);
+ const word=els.get('wl-word').textContent;
+ assert.ok(win.WordWorldContent.getWord(word));
+ els.get('wl-reveal').onclick();
+ els.get('wl-ratings').onclick({target:{closest:()=>({dataset:{wlRating:'again'}})}});
+ const s=JSON.parse(local.get('wordworld_state_v1')),key=win.WordWorldContent.wordKey(word);
+ assert.equal(s.progress[key].lastRating,'again');assert.equal(s.evidence.filter(e=>e.kind==='word'&&e.id===key).length,1);assert.equal(s.daily[Object.keys(s.daily)[0]].new,1);
+ els.get('wl-close').onclick();assert.equal(els.get('wl-shell').hidden,true);
 });

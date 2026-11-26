@@ -235,3 +235,5 @@ body { background:#e9e5dc; }
 #ability-form[hidden],#ability-next[hidden] {display:none;}
 .ability-stats {font-size:13px;line-height:1.7;}
 .ability-stats p {padding:8px 0;border-bottom:1px solid #ddd8cd;margin:0;}
+
+#view-records [hidden],#view-library [hidden]{display:none!important}#level-filters [data-level="cet6"]{display:none}

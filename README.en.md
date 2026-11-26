@@ -1,6 +1,8 @@
 # Word World
 
-**An offline, vocabulary-first app for China's postgraduate English I exam, with independent importance and frequency rankings.**
+**An offline, vocabulary-first app for China's postgraduate English I exam, with adaptive short lessons and an optional football league.**
+
+Current version: `0.6.0-beta.1` (integration beta, not a stable release). [Changelog](CHANGELOG.md) · [Release policy](docs/RELEASES.md) · [Architecture](docs/ARCHITECTURE.md)
 
 **Language / 语言: [简体中文](README.md) | English**
 
@@ -13,11 +15,11 @@
   &nbsp;&nbsp;
   <img src="docs/images/study.png" alt="Meaning and context screen" height="450">
 </p>
-<p align="center"><sub>Real interface screenshots using the bundled demo vocabulary</sub></p>
+<p align="center"><sub>Earlier interface screenshots; the generated app preview shows the current version</sub></p>
 
 ## Overview
 
-Word World separates **dictionary lookup** from **memory practice**. A lookup shows definitions immediately; study sessions begin with active recall, followed by meaning and contextual examples, four-grade feedback, and spaced scheduling. Study progress remains on the device by default.
+Word World separates **dictionary lookup** from **memory practice**. A lookup shows definitions immediately; study sessions begin with active recall, followed by meaning and contextual examples, three-grade feedback, and spaced scheduling. Study progress remains on the device by default.
 
 ```mermaid
 flowchart LR
@@ -29,10 +31,13 @@ flowchart LR
 
 **Features**
 
-- Daily tasks: due reviews first, then new vocabulary.
+- Short lessons: due reviews, new words and targeted usage practice within a personalized time budget.
 - Focused practice: recall, reveal, contextual examples, and four-grade feedback.
 - **Full vocabulary** — 5,530 authentic entries with pronunciations, meanings, source frequency counts, a 3,050-word core-list label and CET overlap information.
-- **Two ranking modes** — composite study importance (default) and descending raw source frequency. The daily screen and settings control new-word order; dictionary details show both ranks.
+- **Exam-related ranking** — composite importance, independent 2010–2025 English I body-text estimates, mixed-source counts and personal knowledge gaps remain distinct.
+- Structured usage: 36 focus entries and 41 independent pilot practice units with original teaching examples.
+- Analytics: study activity, core-word coverage, delayed recall, weak items and scheduled workload.
+- Optional Word FC: a virtual personal football league, with task-based scoring, season reports, vocabulary roster, scouting and due-item recovery practice.
 - Dictionary — Chinese/English search, filters, bookmarks, and word details.
 - Local records: on-device progress and JSON import/export.
 - Spaced repetition: Android builds integrate `ts-fsrs`; standalone HTML previews use a simplified fallback scheduler.
@@ -59,7 +64,10 @@ On Windows, install Node.js 22+, JDK 21+, and the Android SDK, then run `build-a
 ## Repository layout
 
 ```text
-app/                   UI, scheduling logic and 5,530-word licensed vocabulary
+app/                   Actual application, vocabulary and offline assets
+  data/                Dictionary, exam frequency, senses and exercises
+  js/                  Learning, analytics, league and composition
+  styles/              Feature-specific styles
 assets/                Android icon assets
 scripts/               Vocabulary processing and build tools
 tests/                 Automated tests

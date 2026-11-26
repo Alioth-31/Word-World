@@ -1,15 +1,13 @@
 # Development checkpoint
 
-Branch: `dev/exam1-vocabulary`
+Target: `0.6.0-beta.1` (integration beta). This checkpoint consolidates the local experiments into the actual 5,530-word app. The old numbered V9–V21 files were local prototypes, not product releases; generated previews and ZIPs are not source files.
 
-- English I frequency: 2010–2025 corpus, independently selectable in offline app; original mixed-source and importance orders retained.
-- Personalization phase 1: goal-specific ordering (CET6 overlap / English I / balanced), reversible self-reported familiarity, unchanged FSRS and backup compatibility.
-- Personalization phase 2: 12-word stratified self-assessment, explicit pending weaknesses, separate diagnostic history, feedback into personal study queue and ordinary FSRS study.
+- Product scope: English I vocabulary, targeted sense/collocation practice, short lessons and independent memory records. Preserve the existing data IDs and schema-3 backup compatibility.
+- Learning: adaptive time-budget allocation, priority and independent word/skill recall; evidence is separated from immediate repair.
+- Analytics: descriptive coverage, recall and due weak-item tasks. No inferred exam score.
+- Optional Word FC: daily match and season history, roster, scouting based on personal new-word order and recovery based on existing due weak tasks. No effect on FSRS or study priorities.
+- Architecture and release rules: [ARCHITECTURE.md](ARCHITECTURE.md), [RELEASES.md](RELEASES.md), [CHANGELOG](../CHANGELOG.md).
 
-- Content architecture phase 1: shared catalog, stable legacy progress keys, NETEM and explicitly incomplete CET6 overlap books; book-scoped new words/assessment/browsing and global due reviews.
+Next: fix integration/device issues on the beta series, then freeze features for RC. Expand vetted sense/phrase content and evidence-linked priorities in the next minor release; keep vocabulary learning central. No automatic push or merge for future milestones without owner approval.
 
-Next: automated source import and full NETEM/CET6 union, independent versioned word-book manifests, content validation and installable offline packages; then storage migration and sense-level content/assessment. Keep stable IDs, provenance, and backup compatibility.
-
-Work in coherent milestones. Read only relevant files; do not push minor edits or merge automatically. Keep the distinction between self-reported familiarity, successful recall, scheduled review, and validated mastery.
-
-- Personalization phase 3: independently scored pilot skill bank (18 units / 36 variants), separate skill-level FSRS, due-first and round-robin new tasks, variant rotation, observed first-attempt and current weakness metrics, cross-book review. Original questions require broader content coverage and empirical calibration. No general exam-score inference.
+Release gates still open: native Android build/install/update, actual persistent storage and migration on physical devices, accessibility audit, and content verification. No stable release or signed APK is claimed.
