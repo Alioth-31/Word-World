@@ -2,11 +2,11 @@
 
 **Language / 语言: [简体中文](PRIVACY.md) | English**
 
-Word World does not require an account. The published code contains no advertising or telemetry analytics SDK, and the project does not operate a server for study records. Progress, bookmarks, and preferences are stored locally on the device.
+Word World does not require an account. The published code contains no advertising or telemetry analytics SDK, and the project does not operate a server for study records. Progress, word and independent usage practice evidence, bookmarks, preferences, and optional Word FC league records are stored locally on the device. Learning analytics are computed locally and are not transmitted to a project server.
 
 - **Backups:** Export generates a JSON file. Users choose where to store or share it. Import reads a backup file selected by the user.
-- **Network:** Full vocabulary datasets are downloaded during builds. Core learning does not need an online account. Speech synthesis may use the network depending on the device or browser engine.
-- **Data retention:** Uninstalling the app or clearing its storage may delete records. Export a backup first. Automatic cross-device synchronization is not implemented.
+- **Network:** The complete dictionary is bundled with the app; external vocabulary retrieval is needed only for an explicit data refresh. Core learning does not need an online account. Speech synthesis may use the network depending on the device or browser engine.
+- **Data retention:** Uninstalling the app or clearing its storage may delete records. Export a backup first. Automatic cross-device synchronization is not implemented. Word FC is a personal virtual league with no public leaderboard or personal-profile upload.
 
 This notice describes the current repository. Distributions that add remote services, analytics, or other SDKs must update the notice accordingly.
 

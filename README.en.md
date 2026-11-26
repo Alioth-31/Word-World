@@ -10,12 +10,13 @@ Current version: `0.6.0-beta.1` (integration beta, not a stable release). [Chang
 [![MIT License](https://img.shields.io/badge/Code-MIT-344d48)](LICENSE)
 [![Android APK](https://img.shields.io/badge/Android-manual%20build-586864)](https://github.com/Alioth-31/Word-World/actions/workflows/build-apk.yml)
 
-<p align="center">
-  <img src="docs/images/today.png" alt="Daily study screen" height="450">
-  &nbsp;&nbsp;
-  <img src="docs/images/study.png" alt="Meaning and context screen" height="450">
-</p>
-<p align="center"><sub>Earlier interface screenshots; the generated app preview shows the current version</sub></p>
+## Learning interface
+
+| Today | Dictionary | Study records | Profile |
+| --- | --- | --- | --- |
+| Short lessons, due reviews, daily progress, Word FC entry | Bilingual lookup, ordering, bookmarks and contextual details | Overview, trends, memory and consolidation | Study settings, backup and restore |
+
+Run the browser preview below to explore the current interface; earlier screenshots are not used to represent this version.
 
 ## Overview
 
@@ -29,18 +30,27 @@ flowchart LR
     D --> E[Scheduled review]
 ```
 
-**Features**
+## Features
 
 - Short lessons: due reviews, new words and targeted usage practice within a personalized time budget.
-- Focused practice: recall, reveal, contextual examples, and four-grade feedback.
+- Focused practice: recall, reveal, contextual examples, and three-grade feedback (not recalled, recalled with effort, recalled easily), with within-session retrieval repair when needed.
 - **Full vocabulary** — 5,530 authentic entries with pronunciations, meanings, source frequency counts, a 3,050-word core-list label and CET overlap information.
 - **Exam-related ranking** — composite importance, independent 2010–2025 English I body-text estimates, mixed-source counts and personal knowledge gaps remain distinct.
 - Structured usage: 36 focus entries and 41 independent pilot practice units with original teaching examples.
-- Analytics: study activity, core-word coverage, delayed recall, weak items and scheduled workload.
-- Optional Word FC: a virtual personal football league, with task-based scoring, season reports, vocabulary roster, scouting and due-item recovery practice.
+- Analytics: study activity, core-word coverage, delayed recall, weak items, 7/30-day trends and scheduled workload; coverage is not mastery.
+- Optional Word FC: a virtual personal football league with seven-match seasons, 3/1/0 points, division progression, tactics, scouting, rotation-word recovery, match reports and a season XI; it never changes review scheduling.
 - Dictionary — Chinese/English search, filters, bookmarks, and word details.
 - Local records: on-device progress and JSON import/export.
 - Spaced repetition: Android builds integrate `ts-fsrs`; standalone HTML previews use a simplified fallback scheduler.
+
+## What's new in this beta
+
+- Unified daily short lessons and independent sense/collocation practice, allocating new words around the time budget and due reviews.
+- Separate English I frequency and personal knowledge-gap ordering, preserving composite importance.
+- Study records organized into overview, trends, and memory/consolidation; Word FC organized into match, season, and club.
+- Vocabulary roster tiers use actual memory evidence; scouting follows the new-word queue, and recovery practice uses existing due weak tasks.
+
+Design details: [Learning scope](docs/VOCABULARY-SCOPE.md) · [Exam vocabulary](docs/EXAM-VOCABULARY.md) · [Study analytics](docs/STUDY-ANALYSIS.md) · [Word FC](docs/FOOTBALL-LEAGUE.md) · [Interface design](docs/UI-DESIGN.md) (feature specifications in Chinese).
 
 ## Browser preview
 
@@ -71,13 +81,14 @@ app/                   Actual application, vocabulary and offline assets
 assets/                Android icon assets
 scripts/               Vocabulary processing and build tools
 tests/                 Automated tests
-docs/                  Data notices and interface screenshots
+data/                  Exam statistics, provenance and ranking evaluation
+docs/                  Product, architecture, data and release documentation
 .github/workflows/     Tests and Android build workflows
 ```
 
 ## Data, license and privacy
 
-Original code is distributed under the [MIT License](LICENSE). The **bundled vocabulary is licensed under CC BY-NC-SA 4.0**, not this project's MIT license. Source frequency counts combine several English exams and are **not English I-only frequencies**. Composite importance rankings are an unvalidated learning heuristic.
+Original code is distributed under the [MIT License](LICENSE). The **bundled vocabulary is licensed under CC BY-NC-SA 4.0**, not this project's MIT license. Source frequency counts combine several English exams and are **not English I-only frequencies**. Composite importance rankings are an unvalidated learning heuristic. Independent English I counts include conservative inflection inference; an unobserved word is not necessarily absent from exams.
 
 - [Data sources and third-party licenses](docs/DATA.en.md)
 - [Privacy notice](PRIVACY.en.md)
